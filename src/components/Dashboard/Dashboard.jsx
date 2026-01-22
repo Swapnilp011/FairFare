@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
-import { db } from './firebase'; // Adjust path if needed
+import { db } from '../../config/firebase'; // Adjust path if needed
 import {
     collection,
     onSnapshot,
