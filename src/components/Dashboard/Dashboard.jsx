@@ -6,7 +6,9 @@ import {
     onSnapshot,
     addDoc,
     query,
-    orderBy
+    orderBy,
+    doc,
+    getDoc
 } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -18,29 +20,47 @@ const getGeminiModel = () => {
         return null;
     }
     const genAI = new GoogleGenerativeAI(apiKey);
-    return genAI.getGenerativeModel({ model: "gemini-pro" });
+    return genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 };
 
-const Dashboard = ({ user }) => {
+const Dashboard = ({ user, initialTripData }) => {
     console.log("Dashboard rendering with user:", user);
 
     // State
-    const [totalBudget, setTotalBudget] = useState(5000);
+    const [totalBudget, setTotalBudget] = useState(initialTripData?.budget || 5000);
     const [expenses, setExpenses] = useState([]);
     const [currentSpend, setCurrentSpend] = useState(0);
 
     // Form State
     const [itemName, setItemName] = useState('');
     const [cost, setCost] = useState('');
-    const [city, setCity] = useState('');
+    const [city, setCity] = useState(initialTripData?.location || '');
 
     // Loading & Alert State
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [warningMessage, setWarningMessage] = useState(null);
     const [showWarning, setShowWarning] = useState(false);
 
-    // Fetch Expenses Real-time
+    // Fetch Expenses & Trip Data
     useEffect(() => {
+        // Fetch Trip Details
+        const fetchTrip = async () => {
+            if (user?.uid) {
+                try {
+                    const tripDoc = await getDoc(doc(db, "trips", user.uid));
+                    if (tripDoc.exists()) {
+                        const tripData = tripDoc.data();
+                        setTotalBudget(tripData.budget || 5000);
+                        setCity(tripData.location || '');
+                    }
+                } catch (error) {
+                    console.error("Error fetching trip:", error);
+                }
+            }
+        };
+
+        fetchTrip();
+
         const q = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const expensesData = snapshot.docs.map(doc => ({
@@ -55,7 +75,7 @@ const Dashboard = ({ user }) => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [user]);
 
     // AI Guardrail Function
     const checkFairPrice = async (item, itemCost, location) => {
