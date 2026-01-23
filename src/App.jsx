@@ -8,7 +8,13 @@ function App() {
   const [user, setUser] = useState(null);
 
   const handleLogin = (userData) => {
-    setUser(userData);
+    // Store only serializable data
+    setUser({
+      uid: userData.uid,
+      email: userData.email,
+      displayName: userData.displayName,
+      photoURL: userData.photoURL
+    });
     setView('dashboard');
   };
 

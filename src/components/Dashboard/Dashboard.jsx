@@ -10,10 +10,20 @@ import {
 } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "YOUR_GEMINI_API_KEY");
+// Initialize Gemini API (Safe initialization)
+const getGeminiModel = () => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("Gemini API Key is missing!");
+        return null;
+    }
+    const genAI = new GoogleGenerativeAI(apiKey);
+    return genAI.getGenerativeModel({ model: "gemini-pro" });
+};
 
 const Dashboard = ({ user }) => {
+    console.log("Dashboard rendering with user:", user);
+
     // State
     const [totalBudget, setTotalBudget] = useState(5000);
     const [expenses, setExpenses] = useState([]);
@@ -51,7 +61,12 @@ const Dashboard = ({ user }) => {
     const checkFairPrice = async (item, itemCost, location) => {
         setIsAnalyzing(true);
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = getGeminiModel();
+            if (!model) {
+                console.warn("Gemini model not available (missing key?)");
+                return true; // Skip check if no key
+            }
+
             const prompt = `I am a tourist in ${location}. I am paying ${itemCost} for ${item}. Is this fair, expensive, or cheap for a budget traveler? Answer in one short sentence starting with 'Fair', 'Expensive', or 'Cheap'.`;
 
             const result = await model.generateContent(prompt);
@@ -138,7 +153,7 @@ const Dashboard = ({ user }) => {
                         <p className="date-text">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>
                     <div className="user-profile">
-                        <div className="avatar">{user?.displayName ? user.displayName[0].toUpperCase() : 'T'}</div>
+                        <div className="avatar">{user && user.displayName ? user.displayName[0].toUpperCase() : 'T'}</div>
                     </div>
                 </header>
 
