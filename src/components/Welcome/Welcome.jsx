@@ -121,17 +121,17 @@ const Welcome = ({ onStart }) => {
                     <h2 className="section-title">The Problem with Travel Spending</h2>
                     <div className="problem-grid">
                         <div className="problem-card">
-                            <div className="problem-icon">😰</div>
+                            <div className="problem-icon"><img src="/images/destination.png" alt="destination" /></div>
                             <h3>Getting Overcharged</h3>
                             <p>Tourists pay 2-3x more than locals for the same services. Taxi drivers, vendors, and restaurants often exploit lack of local knowledge.</p>
                         </div>
                         <div className="problem-card">
-                            <div className="problem-icon">📊</div>
+                            <div className="problem-icon"><img src="/images/budget.png" alt="budget" /></div>
                             <h3>Budget Confusion</h3>
                             <p>Hard to track daily spending across multiple currencies, cash payments, and digital transactions in unfamiliar places.</p>
                         </div>
                         <div className="problem-card">
-                            <div className="problem-icon">🤷</div>
+                            <div className="problem-icon"><img src="/images/nolocal.png" alt="knowledge" /></div>
                             <h3>No Local Knowledge</h3>
                             <p>Visitors don't know fair prices, cheap authentic restaurants, or best transport options that locals use daily.</p>
                         </div>
@@ -147,7 +147,7 @@ const Welcome = ({ onStart }) => {
                 <div className="steps-container">
                     <div className="step-card">
                         <div className="step-number">1</div>
-                        <div className="step-icon">📍</div>
+                        <div className="step-icon"><img src="/images/SetYourDestinationBudget.png" alt="destination" /></div>
                         <h3 className="step-title">Set Your Destination & Budget</h3>
                         <p className="step-description">
                             Tell us where you're traveling and your daily budget. FairFare automatically loads local price data for that city.
@@ -164,7 +164,7 @@ const Welcome = ({ onStart }) => {
 
                     <div className="step-card">
                         <div className="step-number">2</div>
-                        <div className="step-icon">📱</div>
+                        <div className="step-icon"><img src="/images/LogExpensesInstantly.png" alt="destination" /></div>
                         <h3 className="step-title">Log Expenses Instantly</h3>
                         <p className="step-description">
                             Quick-add expenses as you spend. Snap a photo of receipts or use voice input. FairFare tracks everything in real-time.
@@ -181,7 +181,7 @@ const Welcome = ({ onStart }) => {
 
                     <div className="step-card">
                         <div className="step-number">3</div>
-                        <div className="step-icon">🤖</div>
+                        <div className="step-icon"><img src="/images/getinstantai.png" alt="destination" /></div>
                         <h3 className="step-title">Get Instant AI Alerts</h3>
                         <p className="step-description">
                             Our AI compares your expense to local fair prices. Get immediate alerts if you're being overcharged, plus better alternatives.
@@ -207,7 +207,7 @@ const Welcome = ({ onStart }) => {
 
                 <div className="features-grid">
                     <div className="feature-card">
-                        <div className="feature-icon-large">🎯</div>
+                        <div className="feature-icon-large"><img src="/images/realtime.png" alt="destination" /></div>
                         <h3 className="feature-title">Real-Time Price Alerts</h3>
                         <p className="feature-description">
                             Instantly know if you're being overcharged. Our AI compares your expenses against millions of data points from local travelers.
@@ -218,7 +218,7 @@ const Welcome = ({ onStart }) => {
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon-large">📊</div>
+                        <div className="feature-icon-large"><img src="/images/smartbudget.png" alt="destination" /></div>
                         <h3 className="feature-title">Smart Budget Tracking</h3>
                         <p className="feature-description">
                             See your daily spending at a glance with beautiful visualizations. Know exactly how much you have left before overspending.
@@ -229,7 +229,7 @@ const Welcome = ({ onStart }) => {
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon-large">🍜</div>
+                        <div className="feature-icon-large"><img src="/images/cheapeat.png" alt="destination" /></div>
                         <h3 className="feature-title">Local Cheap Eats Finder</h3>
                         <p className="feature-description">
                             Find authentic local restaurants where residents actually eat. Filter by cuisine, price range, and distance from your location.
@@ -240,7 +240,7 @@ const Welcome = ({ onStart }) => {
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon-large">🚕</div>
+                        <div className="feature-icon-large"><img src="/images/transport.png" alt="destination" /></div>
                         <h3 className="feature-title">Transport Price Comparison</h3>
                         <p className="feature-description">
                             Compare auto, taxi, Uber, Ola, and public transport costs in real-time. Always choose the cheapest, safest option.
@@ -251,7 +251,7 @@ const Welcome = ({ onStart }) => {
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon-large">💬</div>
+                        <div className="feature-icon-large"><img src="/images/negotiation.png" alt="destination" /></div>
                         <h3 className="feature-title">Negotiation Scripts</h3>
                         <p className="feature-description">
                             Get local language phrases and negotiation tips. Know what to say to get fair prices from vendors and drivers.
@@ -262,7 +262,7 @@ const Welcome = ({ onStart }) => {
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon-large">📱</div>
+                        <div className="feature-icon-large"><img src="/images/offline.png" alt="destination" /></div>
                         <h3 className="feature-title">Works Offline</h3>
                         <p className="feature-description">
                             All fair price data downloads to your phone. Track expenses and get alerts even without internet connection.

@@ -896,3 +896,27 @@ body {
         display: none;
     }
 }
+
+.problem-icon img {
+    width: 150px;
+    /* same small size */
+    height: 150px;
+    object-fit: cover;
+    border-radius: 15px;
+    /* rounded like emoji box */
+}
+
+.step-icon img {
+    width: 150px;
+    /* same small size as others */
+    height: 150px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.feature-icon-large img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 15px;
+}
