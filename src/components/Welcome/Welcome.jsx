@@ -23,7 +23,7 @@ const Welcome = ({ onStart }) => {
                     <div className="nav-links">
                         <a href="#features">Features</a>
                         <a href="#how-it-works">How it Works</a>
-                        <button className="nav-login-btn">Login</button>
+                        <button className="nav-login-btn" onClick={onStart}>Login</button>
                         <button className="nav-signup-btn" onClick={handleGetStarted}>Get Started</button>
                     </div>
                 </div>

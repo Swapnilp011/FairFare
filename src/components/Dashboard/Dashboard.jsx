@@ -13,7 +13,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "YOUR_GEMINI_API_KEY");
 
-const Dashboard = () => {
+const Dashboard = ({ user }) => {
     // State
     const [totalBudget, setTotalBudget] = useState(5000);
     const [expenses, setExpenses] = useState([]);
@@ -134,11 +134,11 @@ const Dashboard = () => {
             <main className="main-content">
                 <header className="top-header">
                     <div>
-                        <h1>Welcome back, Traveler!</h1>
+                        <h1>Welcome back, {user?.displayName ? user.displayName.split(' ')[0] : 'Traveler'}!</h1>
                         <p className="date-text">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>
                     <div className="user-profile">
-                        <div className="avatar">T</div>
+                        <div className="avatar">{user?.displayName ? user.displayName[0].toUpperCase() : 'T'}</div>
                     </div>
                 </header>
 

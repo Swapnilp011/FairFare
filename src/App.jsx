@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
 import Dashboard from './components/Dashboard/Dashboard';
 import Welcome from './components/Welcome/Welcome';
+import Auth from './components/Auth/Auth';
 
 function App() {
-  const [view, setView] = useState('welcome'); // 'welcome' or 'dashboard'
+  const [view, setView] = useState('welcome'); // 'welcome', 'auth', or 'dashboard'
+  const [user, setUser] = useState(null);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setView('dashboard');
+  };
 
   return (
     <div className="App">
       {view === 'welcome' && (
-        <Welcome onStart={() => setView('dashboard')} />
+        <Welcome onStart={() => setView('auth')} />
+      )}
+      {view === 'auth' && (
+        <Auth onLogin={handleLogin} />
       )}
       {view === 'dashboard' && (
-        <Dashboard />
+        <Dashboard user={user} />
       )}
     </div>
   );
