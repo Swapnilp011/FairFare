@@ -138,6 +138,10 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
         }
     };
 
+    const openSearch = (query) => {
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(query + " " + city)}`, '_blank');
+    };
+
     // Load Expenses & Listen to DB (Depends on currentTripId)
     useEffect(() => {
         if (!user?.uid || !currentTripId) return;
@@ -367,7 +371,9 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                     {activeTab === 'places' && tripPlan.places?.map((place, idx) => (
                                         <div key={idx} className="plan-card">
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                                <h4>{place.name}</h4>
+                                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {place.name}
+                                                </h4>
                                                 <span className="plan-cost">🎟️ {place.ticket}</span>
                                             </div>
                                             {(place.rating || place.location) && (
@@ -377,13 +383,34 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                                     {place.location && <>📍 {place.location}</>}
                                                 </p>
                                             )}
-                                            <p style={{ marginTop: '8px' }}>{place.desc}</p>
+                                            <p style={{ marginTop: '8px', marginBottom: '12px' }}>{place.desc}</p>
+                                            <button
+                                                onClick={() => openSearch(place.name + " tourism")}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: '1px solid #8B5CF6',
+                                                    color: '#8B5CF6',
+                                                    padding: '6px 12px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    width: 'fit-content'
+                                                }}
+                                            >
+                                                View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                            </button>
                                         </div>
                                     ))}
                                     {activeTab === 'food' && tripPlan.food?.map((item, idx) => (
                                         <div key={idx} className="plan-card">
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                                <h4>{item.name}</h4>
+                                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {item.name}
+                                                </h4>
                                                 <span className="plan-cost">💵 {item.cost}</span>
                                             </div>
                                             {(item.rating || item.location) && (
@@ -393,19 +420,59 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                                     {item.location && <>📍 {item.location}</>}
                                                 </p>
                                             )}
-                                            <p style={{ marginTop: '8px' }}>{item.desc}</p>
+                                            <p style={{ marginTop: '8px', marginBottom: '12px' }}>{item.desc}</p>
+                                            <button
+                                                onClick={() => openSearch(item.name + " restaurant")}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: '1px solid #8B5CF6',
+                                                    color: '#8B5CF6',
+                                                    padding: '6px 12px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    width: 'fit-content'
+                                                }}
+                                            >
+                                                View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                            </button>
                                         </div>
                                     ))}
                                     {activeTab === 'stays' && tripPlan.stays?.map((stay, idx) => (
                                         <div key={idx} className="plan-card">
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                                <h4>{stay.name}</h4>
+                                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {stay.name}
+                                                </h4>
                                                 <span className="plan-cost">🌙 {stay.price}</span>
                                             </div>
                                             <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
                                                 ⭐ <strong>{stay.rating}</strong> • 📍 {stay.location}
                                             </p>
-                                            <p style={{ marginTop: '8px' }}>{stay.desc}</p>
+                                            <p style={{ marginTop: '8px', marginBottom: '12px' }}>{stay.desc}</p>
+                                            <button
+                                                onClick={() => openSearch(stay.name + " hotel")}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: '1px solid #8B5CF6',
+                                                    color: '#8B5CF6',
+                                                    padding: '6px 12px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    width: 'fit-content'
+                                                }}
+                                            >
+                                                View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
