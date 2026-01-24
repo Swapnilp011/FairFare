@@ -181,7 +181,7 @@ const Welcome = ({ onStart }) => {
 
                     <div className="step-card">
                         <div className="step-number">3</div>
-                        <div className="step-icon"><img src="/images/getinstantai.png" alt="destination" /></div>
+                        <div className="step-icon"><img src="/images/instant.png" alt="destination" /></div>
                         <h3 className="step-title">Get Instant AI Alerts</h3>
                         <p className="step-description">
                             Our AI compares your expense to local fair prices. Get immediate alerts if you're being overcharged, plus better alternatives.
