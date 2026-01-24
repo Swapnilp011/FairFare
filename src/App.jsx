@@ -90,6 +90,10 @@ function App() {
     }
   };
 
+  const handleNewPlan = () => {
+    setView('setup');
+  };
+
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: 'white' }}>
@@ -132,7 +136,7 @@ function App() {
         <TripSetup user={user} onComplete={handleTripComplete} />
       )}
       {view === 'dashboard' && (
-        <Dashboard user={user} initialTripData={currentTrip} />
+        <Dashboard user={user} initialTripData={currentTrip} onNewPlan={handleNewPlan} />
       )}
     </div>
   );
