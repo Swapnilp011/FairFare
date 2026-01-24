@@ -11,9 +11,11 @@ import {
     where,
     getDocs,
     doc,
-    getDoc
+    getDoc,
+    updateDoc
 } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Analytics from '../Analytics/Analytics';
 
 // Initialize Gemini API (Safe initialization)
 const getGeminiModel = () => {
@@ -39,6 +41,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     // Multi-trip support
     const [allTrips, setAllTrips] = useState([]);
     const [currentTripId, setCurrentTripId] = useState(initialTripData?.id || null);
+    const [isCompleted, setIsCompleted] = useState(initialTripData?.status === 'completed');
 
     // Form State
     const [itemName, setItemName] = useState('');
@@ -50,21 +53,37 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     const [warningMessage, setWarningMessage] = useState(null);
     const [showWarning, setShowWarning] = useState(false);
 
-    // Fetch All User Trips (Sidebar list)
+    // View State (Dashboard vs Analytics)
+    const [dashboardView, setDashboardView] = useState('overview');
+
+    // Fetch All User Trips (Sidebar list) & Refresh on View Change
     useEffect(() => {
         if (!user?.uid) return;
+
         const fetchTrips = async () => {
             try {
                 const q = query(collection(db, "trips"), where("userId", "==", user.uid));
                 const snapshot = await getDocs(q);
                 const trips = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Sort by createdAt desc to match expected order
+                trips.sort((a, b) => {
+                    const tA = a.createdAt?.seconds || 0;
+                    const tB = b.createdAt?.seconds || 0;
+                    return tB - tA;
+                });
+
                 setAllTrips(trips);
             } catch (error) {
                 console.error("Error fetching trips list:", error);
             }
         };
-        fetchTrips();
-    }, [user]);
+
+        // Fetch on mount OR when switching to analytics to ensure freshness
+        if (allTrips.length === 0 || dashboardView === 'analytics') {
+            fetchTrips();
+        }
+    }, [user, dashboardView]);
 
     // Switch Trip Handler
     const handleSwitchTrip = (trip) => {
@@ -72,7 +91,51 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
         setTotalBudget(trip.budget || 5000);
         setCity(trip.location || '');
         setTripPlan(trip.recommendations || null);
+        setIsCompleted(trip.status === 'completed');
+        setDashboardView('overview'); // Switch to overview when a trip is selected
         // Expenses will auto-reload due to useEffect dependency on currentTripId
+    };
+
+    // End Trip Handler
+    const handleEndTrip = async () => {
+        if (!currentTripId) return;
+        if (window.confirm("Are you sure you want to end this trip? You won't be able to add more expenses.")) {
+
+            // 1. Optimistic UI Update
+            setIsCompleted(true);
+            // Loose comparison in case of string/number mismatch, though IDs should be strings
+            setAllTrips(prev => prev.map(t => (t.id == currentTripId) ? { ...t, status: 'completed' } : t));
+
+            // 2. Update LocalStorage
+            const localTripJson = localStorage.getItem('currentTrip');
+            if (localTripJson) {
+                try {
+                    const localTrip = JSON.parse(localTripJson);
+                    if (localTrip.id == currentTripId) {
+                        localTrip.status = 'completed';
+                        localStorage.setItem('currentTrip', JSON.stringify(localTrip));
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            // 3. Database Update & Sync
+            if (!currentTripId.toString().startsWith('local_')) {
+                try {
+                    await updateDoc(doc(db, "trips", currentTripId), { status: 'completed' });
+
+                    // Force re-fetch from DB to ensure Analytics is 100% in sync
+                    if (user?.uid) {
+                        const q = query(collection(db, "trips"), where("userId", "==", user.uid));
+                        getDocs(q).then(snapshot => {
+                            const trips = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            setAllTrips(trips);
+                        });
+                    }
+                } catch (error) {
+                    console.warn("Could not sync 'completed' status/list to server.", error);
+                }
+            }
+        }
     };
 
     // Load Expenses & Listen to DB (Depends on currentTripId)
@@ -202,7 +265,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     };
 
     // Calculations
-    const progressPercentage = Math.min((currentSpend / totalBudget) * 100, 100);
+    const progressPercentage = isCompleted ? 100 : Math.min((currentSpend / totalBudget) * 100, 100);
     const remainingBudget = totalBudget - currentSpend;
 
     return (
@@ -213,7 +276,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                     <h2>FairFare</h2>
                 </div>
                 <nav className="nav-menu">
-                    <div className="nav-item active">
+                    <div className={`nav-item ${dashboardView === 'overview' ? 'active' : ''}`} onClick={() => setDashboardView('overview')}>
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         <span>Dashboard</span>
                     </div>
@@ -221,7 +284,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                         <span>Wallet</span>
                     </div>
-                    <div className="nav-item">
+                    <div className={`nav-item ${dashboardView === 'analytics' ? 'active' : ''}`} onClick={() => setDashboardView('analytics')}>
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                         <span>Analytics</span>
                     </div>
@@ -256,219 +319,241 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
 
             {/* Main Content */}
             <main className="main-content">
-                <header className="top-header">
-                    <div>
-                        <h1>Welcome back, {user?.displayName ? user.displayName.split(' ')[0] : 'Traveler'}!</h1>
-                        <p className="date-text">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    </div>
-
-                </header>
-
-                {/* Warning Alert */}
-                {showWarning && (
-                    <div className="warning-overlay">
-                        <div className="warning-modal">
-                            <div className="warning-icon">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                {dashboardView === 'overview' ? (
+                    <>
+                        <header className="top-header">
+                            <div>
+                                <h1>Welcome back, {user?.displayName ? user.displayName.split(' ')[0] : 'Traveler'}!</h1>
+                                <p className="date-text">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                             </div>
-                            <h3>Price Alert!</h3>
-                            <p>{warningMessage}</p>
-                            <div className="warning-actions">
-                                <button className="btn-cancel" onClick={() => setShowWarning(false)}>Cancel</button>
-                                <button className="btn-proceed" onClick={saveExpense}>Proceed Anyway</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
-                {/* AI Trip Plan Section */}
-                {tripPlan && (
-                    <div className="plan-section">
-                        <div className="plan-header">
-                            <h3>Your AI Travel Plan</h3>
-                            <div className="plan-tabs">
-                                <button className={activeTab === 'places' ? 'active' : ''} onClick={() => setActiveTab('places')}>🏝️ Places</button>
-                                <button className={activeTab === 'food' ? 'active' : ''} onClick={() => setActiveTab('food')}>🍜 Food</button>
-                                <button className={activeTab === 'stays' ? 'active' : ''} onClick={() => setActiveTab('stays')}>🏨 Stays</button>
-                            </div>
-                        </div>
-                        <div className="plan-content">
-                            {activeTab === 'places' && tripPlan.places?.map((place, idx) => (
-                                <div key={idx} className="plan-card">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <h4>{place.name}</h4>
-                                        <span className="plan-cost">🎟️ {place.ticket}</span>
-                                    </div>
-                                    {(place.rating || place.location) && (
-                                        <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                                            {place.rating && <>⭐ <strong>{place.rating}</strong></>}
-                                            {place.rating && place.location && ' • '}
-                                            {place.location && <>📍 {place.location}</>}
-                                        </p>
-                                    )}
-                                    <p style={{ marginTop: '8px' }}>{place.desc}</p>
-                                </div>
-                            ))}
-                            {activeTab === 'food' && tripPlan.food?.map((item, idx) => (
-                                <div key={idx} className="plan-card">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <h4>{item.name}</h4>
-                                        <span className="plan-cost">💵 {item.cost}</span>
-                                    </div>
-                                    {(item.rating || item.location) && (
-                                        <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                                            {item.rating && <>⭐ <strong>{item.rating}</strong></>}
-                                            {item.rating && item.location && ' • '}
-                                            {item.location && <>📍 {item.location}</>}
-                                        </p>
-                                    )}
-                                    <p style={{ marginTop: '8px' }}>{item.desc}</p>
-                                </div>
-                            ))}
-                            {activeTab === 'stays' && tripPlan.stays?.map((stay, idx) => (
-                                <div key={idx} className="plan-card">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <h4>{stay.name}</h4>
-                                        <span className="plan-cost">🌙 {stay.price}</span>
-                                    </div>
-                                    <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                                        ⭐ <strong>{stay.rating}</strong> • 📍 {stay.location}
-                                    </p>
-                                    <p style={{ marginTop: '8px' }}>{stay.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Summary Cards */}
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-icon budget-icon">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                        </div>
-                        <div className="stat-info">
-                            <span className="stat-label">Total Budget</span>
-                            <span className="stat-value">₹{totalBudget}</span>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon spend-icon">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                        </div>
-                        <div className="stat-info">
-                            <span className="stat-label">Total Spent</span>
-                            <span className="stat-value">₹{currentSpend}</span>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon remaining-icon">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        </div>
-                        <div className="stat-info">
-                            <span className="stat-label">Remaining</span>
-                            <span className="stat-value" style={{ color: remainingBudget < 0 ? '#ff4d4d' : 'inherit' }}>₹{remainingBudget}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="content-grid">
-                    {/* Left Column: Actions & Progress */}
-                    <div className="left-column">
-                        <div className="card budget-progress-card">
-                            <h3>Budget Health</h3>
-                            <div className="progress-container">
-                                <div className="progress-labels">
-                                    <span>{Math.round(progressPercentage)}% Used</span>
-                                    <span>₹{remainingBudget} left</span>
-                                </div>
-                                <div className="progress-track">
-                                    <div
-                                        className="progress-fill"
-                                        style={{
-                                            width: `${progressPercentage}%`,
-                                            backgroundColor: remainingBudget < 0 ? '#ff4d4d' : '#8B5CF6'
-                                        }}
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="card add-expense-card">
-                            <h3>Add New Expense</h3>
-                            <form onSubmit={handleAddExpense} className="expense-form">
-                                <div className="form-group">
-                                    <label>Location</label>
-                                    <input
-                                        type="text"
-                                        placeholder="City (e.g., Goa)"
-                                        value={city}
-                                        onChange={(e) => setCity(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Item / Service</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g., Taxi"
-                                        value={itemName}
-                                        onChange={(e) => setItemName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Cost</label>
-                                    <input
-                                        type="number"
-                                        placeholder="₹ Amount"
-                                        value={cost}
-                                        onChange={(e) => setCost(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <button type="submit" disabled={isAnalyzing} className="submit-btn">
-                                    {isAnalyzing ? (
-                                        <>
-                                            <span className="spinner"></span> Analyzing...
-                                        </>
+                            <div className="header-actions" style={{ marginRight: '180px' }}>
+                                {currentTripId && (
+                                    isCompleted ? (
+                                        <span className="status-badge completed" style={{ background: '#d1fae5', color: '#065f46', padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            ✅ Trip Completed
+                                        </span>
                                     ) : (
-                                        <>+ Add Expense</>
-                                    )}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                                        <button onClick={handleEndTrip} style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}>
+                                            End Trip
+                                        </button>
+                                    )
+                                )}
+                            </div>
+                        </header>
 
-                    {/* Right Column: Recent Activity */}
-                    <div className="right-column">
-                        <CurrencyConverter />
-                        <div className="card recent-activity-card">
-                            <h3>Recent Activity</h3>
-                            {expenses.length === 0 ? (
-                                <div className="empty-state">
-                                    <svg width="48" height="48" fill="none" stroke="#ccc" strokeWidth="1" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                    <p>No expenses yet. Add one to get started!</p>
+                        {/* Warning Alert */}
+                        {showWarning && (
+                            <div className="warning-overlay">
+                                <div className="warning-modal">
+                                    <div className="warning-icon">
+                                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                    </div>
+                                    <h3>Price Alert!</h3>
+                                    <p>{warningMessage}</p>
+                                    <div className="warning-actions">
+                                        <button className="btn-cancel" onClick={() => setShowWarning(false)}>Cancel</button>
+                                        <button className="btn-proceed" onClick={saveExpense}>Proceed Anyway</button>
+                                    </div>
                                 </div>
-                            ) : (
-                                <ul className="activity-list">
-                                    {expenses.map((expense) => (
-                                        <li key={expense.id} className="activity-item">
-                                            <div className="activity-icon">
-                                                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            </div>
+                        )}
+
+                        {/* AI Trip Plan Section */}
+                        {tripPlan && (
+                            <div className="plan-section">
+                                <div className="plan-header">
+                                    <h3>{isCompleted ? `✅ Trip to ${city} Completed` : 'Your AI Travel Plan'}</h3>
+                                    <div className="plan-tabs">
+                                        <button className={activeTab === 'places' ? 'active' : ''} onClick={() => setActiveTab('places')}>🏝️ Places</button>
+                                        <button className={activeTab === 'food' ? 'active' : ''} onClick={() => setActiveTab('food')}>🍜 Food</button>
+                                        <button className={activeTab === 'stays' ? 'active' : ''} onClick={() => setActiveTab('stays')}>🏨 Stays</button>
+                                    </div>
+                                </div>
+                                <div className="plan-content">
+                                    {activeTab === 'places' && tripPlan.places?.map((place, idx) => (
+                                        <div key={idx} className="plan-card">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                                <h4>{place.name}</h4>
+                                                <span className="plan-cost">🎟️ {place.ticket}</span>
                                             </div>
-                                            <div className="activity-details">
-                                                <span className="activity-name">{expense.name}</span>
-                                                <span className="activity-meta">{expense.city} • {expense.timestamp?.toDate ? expense.timestamp.toDate().toLocaleDateString() : 'Just now'}</span>
-                                            </div>
-                                            <span className="activity-amount">-₹{expense.cost}</span>
-                                        </li>
+                                            {(place.rating || place.location) && (
+                                                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                                                    {place.rating && <>⭐ <strong>{place.rating}</strong></>}
+                                                    {place.rating && place.location && ' • '}
+                                                    {place.location && <>📍 {place.location}</>}
+                                                </p>
+                                            )}
+                                            <p style={{ marginTop: '8px' }}>{place.desc}</p>
+                                        </div>
                                     ))}
-                                </ul>
-                            )}
+                                    {activeTab === 'food' && tripPlan.food?.map((item, idx) => (
+                                        <div key={idx} className="plan-card">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                                <h4>{item.name}</h4>
+                                                <span className="plan-cost">💵 {item.cost}</span>
+                                            </div>
+                                            {(item.rating || item.location) && (
+                                                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                                                    {item.rating && <>⭐ <strong>{item.rating}</strong></>}
+                                                    {item.rating && item.location && ' • '}
+                                                    {item.location && <>📍 {item.location}</>}
+                                                </p>
+                                            )}
+                                            <p style={{ marginTop: '8px' }}>{item.desc}</p>
+                                        </div>
+                                    ))}
+                                    {activeTab === 'stays' && tripPlan.stays?.map((stay, idx) => (
+                                        <div key={idx} className="plan-card">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                                <h4>{stay.name}</h4>
+                                                <span className="plan-cost">🌙 {stay.price}</span>
+                                            </div>
+                                            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                                                ⭐ <strong>{stay.rating}</strong> • 📍 {stay.location}
+                                            </p>
+                                            <p style={{ marginTop: '8px' }}>{stay.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Summary Cards */}
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-icon budget-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                </div>
+                                <div className="stat-info">
+                                    <span className="stat-label">Total Budget</span>
+                                    <span className="stat-value">₹{totalBudget}</span>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon spend-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                </div>
+                                <div className="stat-info">
+                                    <span className="stat-label">Total Spent</span>
+                                    <span className="stat-value">₹{currentSpend}</span>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon remaining-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                </div>
+                                <div className="stat-info">
+                                    <span className="stat-label">Remaining</span>
+                                    <span className="stat-value" style={{ color: remainingBudget < 0 ? '#ff4d4d' : 'inherit' }}>₹{remainingBudget}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+
+                        <div className="content-grid">
+                            {/* Left Column: Actions & Progress */}
+                            <div className="left-column">
+                                <div className="card budget-progress-card">
+                                    <h3>Budget Health</h3>
+                                    <div className="progress-container">
+                                        <div className="progress-labels">
+                                            <span>{isCompleted ? 'Trip Completed' : `${Math.round(progressPercentage)}% Used`}</span>
+                                            <span>₹{remainingBudget} left</span>
+                                        </div>
+                                        <div className="progress-track">
+                                            <div
+                                                className="progress-fill"
+                                                style={{
+                                                    width: `${progressPercentage}%`,
+                                                    backgroundColor: isCompleted ? '#10b981' : (remainingBudget < 0 ? '#ff4d4d' : '#8B5CF6')
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card add-expense-card">
+                                    <h3>Add New Expense</h3>
+                                    <form onSubmit={handleAddExpense} className="expense-form">
+                                        <div className="form-group">
+                                            <label>Location</label>
+                                            <input
+                                                type="text"
+                                                placeholder="City (e.g., Goa)"
+                                                value={city}
+                                                onChange={(e) => setCity(e.target.value)}
+                                                required
+                                                disabled={isCompleted}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Item / Service</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g., Taxi"
+                                                value={itemName}
+                                                onChange={(e) => setItemName(e.target.value)}
+                                                required
+                                                disabled={isCompleted}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Cost</label>
+                                            <input
+                                                type="number"
+                                                placeholder="₹ Amount"
+                                                value={cost}
+                                                onChange={(e) => setCost(e.target.value)}
+                                                required
+                                                disabled={isCompleted}
+                                            />
+                                        </div>
+                                        <button type="submit" disabled={isAnalyzing || isCompleted} className="submit-btn" style={isCompleted ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
+                                            {isCompleted ? 'Trip Closed' : (isAnalyzing ? (
+                                                <>
+                                                    <span className="spinner"></span> Analyzing...
+                                                </>
+                                            ) : (
+                                                <>+ Add Expense</>
+                                            ))}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Recent Activity */}
+                            <div className="right-column">
+                                <CurrencyConverter />
+                                <div className="card recent-activity-card">
+                                    <h3>Recent Activity</h3>
+                                    {expenses.length === 0 ? (
+                                        <div className="empty-state">
+                                            <svg width="48" height="48" fill="none" stroke="#ccc" strokeWidth="1" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                                            <p>No expenses yet. Add one to get started!</p>
+                                        </div>
+                                    ) : (
+                                        <ul className="activity-list">
+                                            {expenses.map((expense) => (
+                                                <li key={expense.id} className="activity-item">
+                                                    <div className="activity-icon">
+                                                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                                    </div>
+                                                    <div className="activity-details">
+                                                        <span className="activity-name">{expense.name}</span>
+                                                        <span className="activity-meta">{expense.city} • {expense.timestamp?.toDate ? expense.timestamp.toDate().toLocaleDateString() : 'Just now'}</span>
+                                                    </div>
+                                                    <span className="activity-amount">-₹{expense.cost}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <Analytics allTrips={allTrips} onSwitchTrip={handleSwitchTrip} onBack={() => setDashboardView('overview')} />
+                )}
             </main>
         </div>
     );

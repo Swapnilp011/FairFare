@@ -92,7 +92,8 @@ const TripSetup = ({ user, onComplete, onCancel }) => {
                     duration: Number(duration),
                     recommendations: data,
                     createdAt: new Date(),
-                    remainingBudget: Number(budget)
+                    remainingBudget: Number(budget),
+                    status: 'active'
                 });
                 tripId = docRef.id;
                 console.log("Trip saved with ID:", tripId);
