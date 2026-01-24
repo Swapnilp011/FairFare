@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './TripSetup.css';
-import { db } from '../../config/firebase';
+import { db, auth } from '../../config/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -75,8 +75,16 @@ const TripSetup = ({ user, onComplete }) => {
 
             // Try to Save to Firestore
             try {
-                await setDoc(doc(db, "trips", user.uid), {
-                    userId: user.uid,
+                // Ensure we use the authenticated user's ID
+                const currentUser = auth.currentUser;
+                const uid = currentUser ? currentUser.uid : user.uid;
+
+                if (!currentUser) {
+                    console.warn("No authenticated user found in firebase auth instance. Rules might reject this.");
+                }
+
+                await setDoc(doc(db, "trips", uid), {
+                    userId: uid,
                     location,
                     purpose,
                     budget: Number(budget),
@@ -87,12 +95,24 @@ const TripSetup = ({ user, onComplete }) => {
                 });
             } catch (dbError) {
                 console.error("Database Save Error:", dbError);
-                // We don't block the user if DB fails, we just warn them or proceed silently
-                alert(`Plan generated! However, we couldn't save it to your history due to a permission error: ${dbError.message}. You can still view it now.`);
+                console.log("Current Auth User:", auth.currentUser);
+                alert(`Plan generated! However, save failed: ${dbError.code || dbError.message}. proceeding to dashboard anyway...`);
             }
 
-            // Navigate to Dashboard (where the data should be passed via state if DB fetch isn't guaranteed)
-            // We pass the trip object so Dashboard can use it immediately.
+            // Save to LocalStorage as a fallback (in case DB fails or rules deny access)
+            const crashProofData = {
+                userId: user.uid,
+                location,
+                purpose,
+                budget: Number(budget),
+                duration: Number(duration),
+                recommendations: data,
+                createdAt: new Date().toISOString(), // Serializable date
+                remainingBudget: Number(budget)
+            };
+            localStorage.setItem('currentTrip', JSON.stringify(crashProofData));
+
+            // Navigate to Dashboard (Always proceed, even if save fails)
             onComplete({
                 location,
                 budget: Number(budget),
