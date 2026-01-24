@@ -295,23 +295,46 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                         <div className="plan-content">
                             {activeTab === 'places' && tripPlan.places?.map((place, idx) => (
                                 <div key={idx} className="plan-card">
-                                    <h4>{place.name}</h4>
-                                    <p className="plan-cost">🎟️ {place.ticket}</p>
-                                    <p>{place.desc}</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                        <h4>{place.name}</h4>
+                                        <span className="plan-cost">🎟️ {place.ticket}</span>
+                                    </div>
+                                    {(place.rating || place.location) && (
+                                        <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                                            {place.rating && <>⭐ <strong>{place.rating}</strong></>}
+                                            {place.rating && place.location && ' • '}
+                                            {place.location && <>📍 {place.location}</>}
+                                        </p>
+                                    )}
+                                    <p style={{ marginTop: '8px' }}>{place.desc}</p>
                                 </div>
                             ))}
                             {activeTab === 'food' && tripPlan.food?.map((item, idx) => (
                                 <div key={idx} className="plan-card">
-                                    <h4>{item.name}</h4>
-                                    <p className="plan-cost">💵 {item.cost}</p>
-                                    <p>{item.desc}</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                        <h4>{item.name}</h4>
+                                        <span className="plan-cost">💵 {item.cost}</span>
+                                    </div>
+                                    {(item.rating || item.location) && (
+                                        <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                                            {item.rating && <>⭐ <strong>{item.rating}</strong></>}
+                                            {item.rating && item.location && ' • '}
+                                            {item.location && <>📍 {item.location}</>}
+                                        </p>
+                                    )}
+                                    <p style={{ marginTop: '8px' }}>{item.desc}</p>
                                 </div>
                             ))}
                             {activeTab === 'stays' && tripPlan.stays?.map((stay, idx) => (
                                 <div key={idx} className="plan-card">
-                                    <h4>{stay.name}</h4>
-                                    <p className="plan-cost">🌙 {stay.price}</p>
-                                    <p>{stay.desc}</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                        <h4>{stay.name}</h4>
+                                        <span className="plan-cost">🌙 {stay.price}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                                        ⭐ <strong>{stay.rating}</strong> • 📍 {stay.location}
+                                    </p>
+                                    <p style={{ marginTop: '8px' }}>{stay.desc}</p>
                                 </div>
                             ))}
                         </div>
