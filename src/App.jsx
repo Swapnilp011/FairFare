@@ -29,17 +29,37 @@ function App() {
       const q = query(
         collection(db, "trips"),
         where("userId", "==", firebaseUser.uid)
-        // orderBy("createdAt", "desc") // requires index, so stick to client filtering or simple first match
       );
 
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        // Get the "latest" one roughly or just the first one found
-        const tripDoc = querySnapshot.docs[0];
-        const tripData = { id: tripDoc.id, ...tripDoc.data() };
-        setCurrentTrip(tripData);
-        setView('dashboard');
+        // Convert and Sort Client-Side to get the latest
+        const trips = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          // Handle Firestore Timestamp vs Date string vs null
+          let createdTime = 0;
+          if (data.createdAt?.seconds) {
+            createdTime = data.createdAt.seconds;
+          } else if (typeof data.createdAt === 'string') {
+            createdTime = new Date(data.createdAt).getTime();
+          }
+          return { id: doc.id, ...data, _sortTime: createdTime };
+        });
+
+        // Sort Descending (Newest First)
+        trips.sort((a, b) => b._sortTime - a._sortTime);
+
+        setCurrentTrip(trips[0]);
+
+        // Restore last view if available, otherwise default to dashboard
+        const lastView = localStorage.getItem('lastView');
+        if (lastView === 'setup') {
+          setView('setup');
+        } else {
+          setView('dashboard');
+        }
+
       } else {
         // Fallback: Check LocalStorage
         const localTrip = localStorage.getItem('currentTrip');
@@ -65,6 +85,12 @@ function App() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (view === 'dashboard' || view === 'setup') {
+      localStorage.setItem('lastView', view);
+    }
+  }, [view]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -128,6 +154,10 @@ function App() {
 
           {showUserMenu && (
             <div className="user-menu">
+              <button onClick={() => { setView('dashboard'); setShowUserMenu(false); }}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                Dashboard
+              </button>
               <button onClick={handleLogout}>
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Logout
