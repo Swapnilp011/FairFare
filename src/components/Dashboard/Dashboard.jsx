@@ -23,7 +23,7 @@ const getGeminiModel = () => {
     return genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 };
 
-const Dashboard = ({ user, initialTripData }) => {
+const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     console.log("Dashboard rendering with user:", user);
 
     // State
@@ -41,9 +41,23 @@ const Dashboard = ({ user, initialTripData }) => {
     const [warningMessage, setWarningMessage] = useState(null);
     const [showWarning, setShowWarning] = useState(false);
 
-    // Fetch Expenses & Trip Data
+    // Load Expenses & Listen to DB
     useEffect(() => {
         if (!user?.uid) return;
+
+        // 1. Initial Load from LocalStorage (Fast render & Offline support)
+        const localExpensesKey = `expenses_${user.uid}`;
+        const cachedExpenses = localStorage.getItem(localExpensesKey);
+        if (cachedExpenses) {
+            try {
+                const parsed = JSON.parse(cachedExpenses);
+                // Convert stored timestamps back to Date objects if needed (though map helps)
+                // We keep them as is, UI handles potentially missing toDate()
+                if (parsed.length > 0) setExpenses(parsed);
+            } catch (e) {
+                console.error("Error parsing local expenses:", e);
+            }
+        }
 
         // Fetch Trip Details
         const fetchTrip = async () => {
@@ -70,15 +84,23 @@ const Dashboard = ({ user, initialTripData }) => {
                 id: doc.id,
                 ...doc.data()
             }));
-            setExpenses(expensesData);
 
-            // Calculate total spend
-            const total = expensesData.reduce((acc, curr) => acc + Number(curr.cost), 0);
-            setCurrentSpend(total);
+            // If DB has data, update state and cache
+            setExpenses(expensesData);
+            // Always update local storage to reflect the latest state from DB
+            localStorage.setItem(localExpensesKey, JSON.stringify(expensesData));
+        }, (error) => {
+            console.error("Error listening to expenses (using local cache):", error);
         });
 
         return () => unsubscribe();
     }, [user]);
+
+    // Recalculate totals whenever expenses change (Optimistic UI support)
+    useEffect(() => {
+        const total = expenses.reduce((acc, curr) => acc + Number(curr.cost), 0);
+        setCurrentSpend(total);
+    }, [expenses]);
 
     // AI Guardrail Function
     const checkFairPrice = async (item, itemCost, location) => {
@@ -126,6 +148,29 @@ const Dashboard = ({ user, initialTripData }) => {
     const saveExpense = async () => {
         if (!user?.uid) return;
 
+        const newExpense = {
+            id: Date.now().toString(),
+            name: itemName,
+            cost: Number(cost),
+            city: city,
+            timestamp: new Date() // Store as object/date
+        };
+
+        // 1. Optimistic Update
+        const updatedExpenses = [newExpense, ...expenses];
+        setExpenses(updatedExpenses);
+
+        // 2. Save to Local Cache (Manual Persistence)
+        const localExpensesKey = `expenses_${user.uid}`;
+        // We strip methods or complexity before JSON stringify if needed, but simple objects are fine
+        localStorage.setItem(localExpensesKey, JSON.stringify(updatedExpenses));
+
+        // Reset form
+        setItemName('');
+        setCost('');
+        setShowWarning(false);
+        setWarningMessage(null);
+
         try {
             const expensesRef = collection(db, "trips", user.uid, "expenses");
             await addDoc(expensesRef, {
@@ -134,13 +179,8 @@ const Dashboard = ({ user, initialTripData }) => {
                 city: city,
                 timestamp: new Date()
             });
-            // Reset form
-            setItemName('');
-            setCost('');
-            setShowWarning(false);
-            setWarningMessage(null);
         } catch (error) {
-            console.error("Error adding document: ", error);
+            console.error("Error adding document (saved locally in session): ", error);
         }
     };
 
@@ -167,6 +207,10 @@ const Dashboard = ({ user, initialTripData }) => {
                     <div className="nav-item">
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                         <span>Analytics</span>
+                    </div>
+                    <div className="nav-item new-plan-btn" onClick={onNewPlan} style={{ marginTop: 'auto', marginBottom: '20px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#a78bfa' }}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        <span>New Plan</span>
                     </div>
                 </nav>
             </aside>
