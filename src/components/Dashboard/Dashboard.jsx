@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
+import CurrencyConverter from '../CurrencyConverter';
 import { db } from '../../config/firebase';
 import {
     collection,
@@ -301,6 +302,7 @@ const Dashboard = ({ user, initialTripData }) => {
 
                     {/* Right Column: Recent Activity */}
                     <div className="right-column">
+                        <CurrencyConverter />
                         <div className="card recent-activity-card">
                             <h3>Recent Activity</h3>
                             {expenses.length === 0 ? (
