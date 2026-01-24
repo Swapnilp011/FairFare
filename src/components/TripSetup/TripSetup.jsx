@@ -33,15 +33,17 @@ const TripSetup = ({ user, onComplete, onCancel }) => {
             if (!model) throw new Error("AI Key missing");
 
             const prompt = `
-            Plan a budget trip details for a user in ${location} for ${duration} days.
+            Plan a detailed budget trip for a user in ${location} for ${duration} days.
             Purpose: ${purpose}.
             Total Budget: ${user.currency || '₹'}${budget}.
             
+            Provide at least 5 options for each category (food, places, stays).
+            
             Return a JSON object with exactly these fields:
             {
-                "food": [{"name": "Name", "cost": "approx cost", "desc": "short desc"}],
-                "places": [{"name": "Name", "ticket": "ticket price", "desc": "short desc"}],
-                "stays": [{"name": "Name", "price": "price per night", "desc": "short desc"}],
+                "food": [{"name": "Name", "cost": "approx cost", "rating": "e.g. 4.5/5", "location": "Area", "desc": "short desc"}],
+                "places": [{"name": "Name", "ticket": "ticket price", "rating": "e.g. 4.7/5", "location": "Area", "desc": "short desc"}],
+                "stays": [{"name": "Name", "price": "price per night", "rating": "e.g. 4.5/5", "location": "Area Name", "desc": "short desc"}],
                 "travel_tips": ["tip1", "tip2"]
             }
             Do not include markdown or backticks. Just raw JSON.
