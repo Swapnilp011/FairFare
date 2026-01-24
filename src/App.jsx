@@ -5,7 +5,7 @@ import Welcome from './components/Welcome/Welcome';
 import Auth from './components/Auth/Auth';
 import TripSetup from './components/TripSetup/TripSetup';
 import { db, auth } from './config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 function App() {
@@ -25,9 +25,20 @@ function App() {
     });
 
     try {
-      const tripDoc = await getDoc(doc(db, "trips", firebaseUser.uid));
-      if (tripDoc.exists()) {
-        setCurrentTrip(tripDoc.data());
+      // Fetch latest trip for this user
+      const q = query(
+        collection(db, "trips"),
+        where("userId", "==", firebaseUser.uid)
+        // orderBy("createdAt", "desc") // requires index, so stick to client filtering or simple first match
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // Get the "latest" one roughly or just the first one found
+        const tripDoc = querySnapshot.docs[0];
+        const tripData = { id: tripDoc.id, ...tripDoc.data() };
+        setCurrentTrip(tripData);
         setView('dashboard');
       } else {
         // Fallback: Check LocalStorage
@@ -133,7 +144,11 @@ function App() {
         <Auth onLogin={handleLogin} />
       )}
       {view === 'setup' && (
-        <TripSetup user={user} onComplete={handleTripComplete} />
+        <TripSetup
+          user={user}
+          onComplete={handleTripComplete}
+          onCancel={currentTrip ? () => setView('dashboard') : null}
+        />
       )}
       {view === 'dashboard' && (
         <Dashboard user={user} initialTripData={currentTrip} onNewPlan={handleNewPlan} />

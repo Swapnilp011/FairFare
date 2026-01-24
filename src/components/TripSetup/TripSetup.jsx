@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './TripSetup.css';
 import { db, auth } from '../../config/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini
@@ -12,7 +12,7 @@ const getGeminiModel = () => {
     return genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 };
 
-const TripSetup = ({ user, onComplete }) => {
+const TripSetup = ({ user, onComplete, onCancel }) => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
 
@@ -73,17 +73,16 @@ const TripSetup = ({ user, onComplete }) => {
             }
             setRecommendations(data);
 
+            let tripId = null;
+
             // Try to Save to Firestore
             try {
                 // Ensure we use the authenticated user's ID
                 const currentUser = auth.currentUser;
                 const uid = currentUser ? currentUser.uid : user.uid;
 
-                if (!currentUser) {
-                    console.warn("No authenticated user found in firebase auth instance. Rules might reject this.");
-                }
-
-                await setDoc(doc(db, "trips", uid), {
+                // create a new document with auto-generated ID
+                const docRef = await addDoc(collection(db, "trips"), {
                     userId: uid,
                     location,
                     purpose,
@@ -93,27 +92,33 @@ const TripSetup = ({ user, onComplete }) => {
                     createdAt: new Date(),
                     remainingBudget: Number(budget)
                 });
+                tripId = docRef.id;
+                console.log("Trip saved with ID:", tripId);
+
             } catch (dbError) {
                 console.error("Database Save Error:", dbError);
-                console.log("Current Auth User:", auth.currentUser);
+                // If DB save fails, generate a temporary local ID
+                tripId = `local_${Date.now()}`;
                 alert(`Plan generated! However, save failed: ${dbError.code || dbError.message}. proceeding to dashboard anyway...`);
             }
 
-            // Save to LocalStorage as a fallback (in case DB fails or rules deny access)
+            // Save to LocalStorage
             const crashProofData = {
+                id: tripId,
                 userId: user.uid,
                 location,
                 purpose,
                 budget: Number(budget),
                 duration: Number(duration),
                 recommendations: data,
-                createdAt: new Date().toISOString(), // Serializable date
+                createdAt: new Date().toISOString(),
                 remainingBudget: Number(budget)
             };
             localStorage.setItem('currentTrip', JSON.stringify(crashProofData));
 
-            // Navigate to Dashboard (Always proceed, even if save fails)
+            // Navigate to Dashboard
             onComplete({
+                id: tripId,
                 location,
                 budget: Number(budget),
                 recommendations: data
@@ -134,6 +139,23 @@ const TripSetup = ({ user, onComplete }) => {
     return (
         <div className="setup-container">
             <div className="setup-card">
+                {onCancel && (
+                    <button onClick={onCancel} className="back-btn" style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#aaa',
+                        cursor: 'pointer',
+                        padding: '10px 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        marginBottom: '10px',
+                        fontSize: '0.9rem'
+                    }}>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                        Back to Dashboard
+                    </button>
+                )}
                 <div className="setup-header">
                     <div className="logo-small">✈️ Trip Planner</div>
                     <h2>Plan Your Adventure</h2>

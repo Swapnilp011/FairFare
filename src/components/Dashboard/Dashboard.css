@@ -511,3 +511,140 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* AI Trip Plan Section */
+.plan-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+  border: 1px solid #f3f4f6;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.plan-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.plan-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+}
+
+.plan-tabs button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.plan-tabs button:hover {
+  color: var(--text-dark);
+}
+
+.plan-tabs button.active {
+  background: white;
+  color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.plan-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.plan-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  background: white;
+  border-color: var(--primary-color);
+}
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+  opacity: 0.5;
+}
+
+.plan-card h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.plan-cost {
+  display: inline-block;
+  background: #ede9fe;
+  color: var(--primary-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.plan-card p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .plan-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .plan-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .plan-tabs button {
+    flex: 1;
+    white-space: nowrap;
+  }
+}
