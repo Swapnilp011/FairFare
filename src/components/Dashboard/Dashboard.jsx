@@ -326,20 +326,6 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                 <h1>Welcome back, {user?.displayName ? user.displayName.split(' ')[0] : 'Traveler'}!</h1>
                                 <p className="date-text">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                             </div>
-
-                            <div className="header-actions" style={{ marginRight: '180px' }}>
-                                {currentTripId && (
-                                    isCompleted ? (
-                                        <span className="status-badge completed" style={{ background: '#d1fae5', color: '#065f46', padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                            ✅ Trip Completed
-                                        </span>
-                                    ) : (
-                                        <button onClick={handleEndTrip} style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}>
-                                            End Trip
-                                        </button>
-                                    )
-                                )}
-                            </div>
                         </header>
 
                         {/* Warning Alert */}
@@ -363,7 +349,14 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                         {tripPlan && (
                             <div className="plan-section">
                                 <div className="plan-header">
-                                    <h3>{isCompleted ? `✅ Trip to ${city} Completed` : 'Your AI Travel Plan'}</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        <h3>{isCompleted ? `✅ Trip to ${city} Completed` : 'Your AI Travel Plan'}</h3>
+                                        {!isCompleted && currentTripId && (
+                                            <button onClick={handleEndTrip} style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}>
+                                                End Trip
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="plan-tabs">
                                         <button className={activeTab === 'places' ? 'active' : ''} onClick={() => setActiveTab('places')}>🏝️ Places</button>
                                         <button className={activeTab === 'food' ? 'active' : ''} onClick={() => setActiveTab('food')}>🍜 Food</button>
