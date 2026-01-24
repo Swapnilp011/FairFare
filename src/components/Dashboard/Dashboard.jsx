@@ -43,25 +43,28 @@ const Dashboard = ({ user, initialTripData }) => {
 
     // Fetch Expenses & Trip Data
     useEffect(() => {
+        if (!user?.uid) return;
+
         // Fetch Trip Details
         const fetchTrip = async () => {
-            if (user?.uid) {
-                try {
-                    const tripDoc = await getDoc(doc(db, "trips", user.uid));
-                    if (tripDoc.exists()) {
-                        const tripData = tripDoc.data();
-                        setTotalBudget(tripData.budget || 5000);
-                        setCity(tripData.location || '');
-                    }
-                } catch (error) {
-                    console.error("Error fetching trip:", error);
+            try {
+                const tripDoc = await getDoc(doc(db, "trips", user.uid));
+                if (tripDoc.exists()) {
+                    const tripData = tripDoc.data();
+                    setTotalBudget(tripData.budget || 5000);
+                    setCity(tripData.location || '');
                 }
+            } catch (error) {
+                console.error("Error fetching trip:", error);
             }
         };
 
         fetchTrip();
 
-        const q = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
+        // Listen to User's Expenses Subcollection
+        const expensesRef = collection(db, "trips", user.uid, "expenses");
+        const q = query(expensesRef, orderBy("timestamp", "desc"));
+
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const expensesData = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -121,8 +124,11 @@ const Dashboard = ({ user, initialTripData }) => {
     };
 
     const saveExpense = async () => {
+        if (!user?.uid) return;
+
         try {
-            await addDoc(collection(db, "expenses"), {
+            const expensesRef = collection(db, "trips", user.uid, "expenses");
+            await addDoc(expensesRef, {
                 name: itemName,
                 cost: Number(cost),
                 city: city,
