@@ -8,6 +8,8 @@ import {
     addDoc,
     query,
     orderBy,
+    where,
+    getDocs,
     doc,
     getDoc
 } from 'firebase/firestore';
@@ -31,6 +33,12 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     const [totalBudget, setTotalBudget] = useState(initialTripData?.budget || 5000);
     const [expenses, setExpenses] = useState([]);
     const [currentSpend, setCurrentSpend] = useState(0);
+    const [tripPlan, setTripPlan] = useState(initialTripData?.recommendations || null);
+    const [activeTab, setActiveTab] = useState('places');
+
+    // Multi-trip support
+    const [allTrips, setAllTrips] = useState([]);
+    const [currentTripId, setCurrentTripId] = useState(initialTripData?.id || null);
 
     // Form State
     const [itemName, setItemName] = useState('');
@@ -42,42 +50,53 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     const [warningMessage, setWarningMessage] = useState(null);
     const [showWarning, setShowWarning] = useState(false);
 
-    // Load Expenses & Listen to DB
+    // Fetch All User Trips (Sidebar list)
     useEffect(() => {
         if (!user?.uid) return;
+        const fetchTrips = async () => {
+            try {
+                const q = query(collection(db, "trips"), where("userId", "==", user.uid));
+                const snapshot = await getDocs(q);
+                const trips = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setAllTrips(trips);
+            } catch (error) {
+                console.error("Error fetching trips list:", error);
+            }
+        };
+        fetchTrips();
+    }, [user]);
 
-        // 1. Initial Load from LocalStorage (Fast render & Offline support)
-        const localExpensesKey = `expenses_${user.uid}`;
+    // Switch Trip Handler
+    const handleSwitchTrip = (trip) => {
+        setCurrentTripId(trip.id);
+        setTotalBudget(trip.budget || 5000);
+        setCity(trip.location || '');
+        setTripPlan(trip.recommendations || null);
+        // Expenses will auto-reload due to useEffect dependency on currentTripId
+    };
+
+    // Load Expenses & Listen to DB (Depends on currentTripId)
+    useEffect(() => {
+        if (!user?.uid || !currentTripId) return;
+
+        const localExpensesKey = `expenses_${currentTripId}`;
         const cachedExpenses = localStorage.getItem(localExpensesKey);
         if (cachedExpenses) {
             try {
                 const parsed = JSON.parse(cachedExpenses);
-                // Convert stored timestamps back to Date objects if needed (though map helps)
-                // We keep them as is, UI handles potentially missing toDate()
                 if (parsed.length > 0) setExpenses(parsed);
+                else setExpenses([]); // Clear if empty
             } catch (e) {
                 console.error("Error parsing local expenses:", e);
             }
+        } else {
+            setExpenses([]); // Clear previous trip expenses if no cache
         }
 
-        // Fetch Trip Details
-        const fetchTrip = async () => {
-            try {
-                const tripDoc = await getDoc(doc(db, "trips", user.uid));
-                if (tripDoc.exists()) {
-                    const tripData = tripDoc.data();
-                    setTotalBudget(tripData.budget || 5000);
-                    setCity(tripData.location || '');
-                }
-            } catch (error) {
-                console.error("Error fetching trip:", error);
-            }
-        };
-
-        fetchTrip();
-
-        // Listen to User's Expenses Subcollection
-        const expensesRef = collection(db, "trips", user.uid, "expenses");
+        // Listen to Current Trip's Expenses Subcollection
+        // OLD: collection(db, "trips", user.uid, "expenses")
+        // NEW: collection(db, "trips", currentTripId, "expenses")
+        const expensesRef = collection(db, "trips", currentTripId, "expenses");
         const q = query(expensesRef, orderBy("timestamp", "desc"));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -86,16 +105,14 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                 ...doc.data()
             }));
 
-            // If DB has data, update state and cache
             setExpenses(expensesData);
-            // Always update local storage to reflect the latest state from DB
             localStorage.setItem(localExpensesKey, JSON.stringify(expensesData));
         }, (error) => {
-            console.error("Error listening to expenses (using local cache):", error);
+            console.error("Error listening to expenses:", error);
         });
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user, currentTripId]); // Re-run when trip ID changes
 
     // Recalculate totals whenever expenses change (Optimistic UI support)
     useEffect(() => {
@@ -147,14 +164,14 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     };
 
     const saveExpense = async () => {
-        if (!user?.uid) return;
+        if (!user?.uid || !currentTripId) return;
 
         const newExpense = {
             id: Date.now().toString(),
             name: itemName,
             cost: Number(cost),
             city: city,
-            timestamp: new Date() // Store as object/date
+            timestamp: new Date()
         };
 
         // 1. Optimistic Update
@@ -162,8 +179,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
         setExpenses(updatedExpenses);
 
         // 2. Save to Local Cache (Manual Persistence)
-        const localExpensesKey = `expenses_${user.uid}`;
-        // We strip methods or complexity before JSON stringify if needed, but simple objects are fine
+        const localExpensesKey = `expenses_${currentTripId}`;
         localStorage.setItem(localExpensesKey, JSON.stringify(updatedExpenses));
 
         // Reset form
@@ -173,7 +189,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
         setWarningMessage(null);
 
         try {
-            const expensesRef = collection(db, "trips", user.uid, "expenses");
+            const expensesRef = collection(db, "trips", currentTripId, "expenses");
             await addDoc(expensesRef, {
                 name: itemName,
                 cost: Number(cost),
@@ -209,6 +225,28 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                         <span>Analytics</span>
                     </div>
+
+                    {/* My Trips List */}
+                    {allTrips.length > 0 && (
+                        <div className="trips-list" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
+                            <h4 style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>My Trips</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+                                {allTrips.map(trip => (
+                                    <div
+                                        key={trip.id}
+                                        onClick={() => handleSwitchTrip(trip)}
+                                        className={`nav-item ${currentTripId === trip.id ? 'active' : ''}`}
+                                        style={{ fontSize: '0.9rem', padding: '0.5rem 0.75rem' }}
+                                    >
+                                        <span style={{ width: '20px', textAlign: 'center' }}>✈️</span>
+                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
+                                            {trip.location}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <div className="nav-item new-plan-btn" onClick={onNewPlan} style={{ marginTop: 'auto', marginBottom: '20px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#a78bfa' }}>
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                         <span>New Plan</span>
@@ -223,9 +261,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                         <h1>Welcome back, {user?.displayName ? user.displayName.split(' ')[0] : 'Traveler'}!</h1>
                         <p className="date-text">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>
-                    <div className="user-profile">
-                        <div className="avatar">{user && user.displayName ? user.displayName[0].toUpperCase() : 'T'}</div>
-                    </div>
+
                 </header>
 
                 {/* Warning Alert */}
@@ -241,6 +277,43 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                 <button className="btn-cancel" onClick={() => setShowWarning(false)}>Cancel</button>
                                 <button className="btn-proceed" onClick={saveExpense}>Proceed Anyway</button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* AI Trip Plan Section */}
+                {tripPlan && (
+                    <div className="plan-section">
+                        <div className="plan-header">
+                            <h3>Your AI Travel Plan</h3>
+                            <div className="plan-tabs">
+                                <button className={activeTab === 'places' ? 'active' : ''} onClick={() => setActiveTab('places')}>🏝️ Places</button>
+                                <button className={activeTab === 'food' ? 'active' : ''} onClick={() => setActiveTab('food')}>🍜 Food</button>
+                                <button className={activeTab === 'stays' ? 'active' : ''} onClick={() => setActiveTab('stays')}>🏨 Stays</button>
+                            </div>
+                        </div>
+                        <div className="plan-content">
+                            {activeTab === 'places' && tripPlan.places?.map((place, idx) => (
+                                <div key={idx} className="plan-card">
+                                    <h4>{place.name}</h4>
+                                    <p className="plan-cost">🎟️ {place.ticket}</p>
+                                    <p>{place.desc}</p>
+                                </div>
+                            ))}
+                            {activeTab === 'food' && tripPlan.food?.map((item, idx) => (
+                                <div key={idx} className="plan-card">
+                                    <h4>{item.name}</h4>
+                                    <p className="plan-cost">💵 {item.cost}</p>
+                                    <p>{item.desc}</p>
+                                </div>
+                            ))}
+                            {activeTab === 'stays' && tripPlan.stays?.map((stay, idx) => (
+                                <div key={idx} className="plan-card">
+                                    <h4>{stay.name}</h4>
+                                    <p className="plan-cost">🌙 {stay.price}</p>
+                                    <p>{stay.desc}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
