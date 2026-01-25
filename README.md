@@ -1,55 +1,116 @@
 # FairFare ✈️
 
-FairFare is an AI-powered travel companion designed to help budget travelers track expenses, avoid overpaying, and make smarter financial decisions while exploring the world.
+FairFare is an intelligent, AI-powered travel companion designed to help modern travelers explore the world without breaking the bank. It combines smart expense tracking with real-time AI insights to ensure you get the best value for your money.
 
 ## 🌟 Features
 
-- **Smart Dashboard**: Visual overview of your travel budget, expenses, and remaining funds.
-- **AI Price Guardrail**: Integrated with Google Gemini to analyze your expenses in real-time and warn you if you are overpaying for items or services in a specific location.
-- **Expense Tracking**: Easy-to-use form to log expenses (Location, Item, Cost).
-- **Premium UI**: Glassmorphism design, responsive layout, and smooth animations.
+- **AI-Powered Travel Planning**: Generate personalized travel itineraries based on your budget, interests, and destination using Google Gemini AI.
+- **Smart Budget Dashboard**: Visual analytics of your travel budget, real-time spending tracking, and remaining funds.
+- **Fair Price Guardrail**: An AI assistant that analyzes your pending purchases (e.g., "Coffee in Paris for €15") and warns you if you are overpaying.
+- **Expense Logging**: Quick and easy logging of travel expenses categorized by food, transport, stay, and adventure.
+- **Travel History**: Keep a record of all your past and ongoing trips.
+- **Premium UI/UX**: faster, responsive, and beautiful interface featuring glassmorphism and smooth animations.
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React.js (Vite)
+- **Styling**: Vanilla CSS3 (Custom Design System, Glassmorphism)
+- **Database & Backend**: Google Firebase (Firestore, Authentication)
+- **AI Integration**: Google Gemini Pro API (`@google/generative-ai`)
+
+---
 
 ## 🚀 Getting Started
 
+Follow these steps to set up the project locally on your machine.
+
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- Google Gemini API Key
+- **Node.js** (v18 or higher) installed. [Download Here](https://nodejs.org/)
+- A **Google Cloud Project** with Firebase enabled.
+- An **API Key** for Google Gemini AI.
 
-### Installation
+### 1. Clone the Repository
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up environment variables:
-   - Create a `.env` file in the root directory.
-   - Add your Gemini API Key:
-     ```env
-     VITE_GEMINI_API_KEY=your_api_key_here
-     ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+git clone https://github.com/Swapnilp011/FairFare.git
+cd budget-travel-app
+```
 
-## 🛠️ Built With
+### 2. Install Dependencies
 
-- **React** (Vite)
-- **Firebase** (Firestore)
-- **Google Generative AI** (Gemini Pro)
-- **CSS3** (Glassmorphism, Grid, Flexbox)
+Install the required npm packages using the command line:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+```
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
+### 3. Environment Configuration 🔐
 
-hello 
-=======
-hello
->>>>>>> 9873c351c48d17e2cad273d5119cf6527c7f220c
-hello everyone i am here 
->>>>>>> 7b640027d4224df027de103a665c00809940293a
+This project relies on **Firebase** and **Google Gemini** services. You need to configure your API keys.
+
+1.  Create a new file named `.env` in the root directory of the project.
+2.  Copy the following template into your `.env` file:
+
+```env
+# Google Gemini API Key
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+#### � How to get these keys:
+
+**A. Google Gemini API Key:**
+1.  Go to [Google AI Studio](https://aistudio.google.com/app/apikey).
+2.  Click "Create API key".
+3.  Paste the key into `VITE_GEMINI_API_KEY`.
+
+**B. Firebase Configuration:**
+1.  Go to the [Firebase Console](https://console.firebase.google.com/).
+2.  Open your project (or create one).
+3.  Go to **Project Settings** (Gear icon > Project settings).
+4.  Scroll down to the "Your apps" section.
+5.  If you haven't created a web app, click the **`</>` (Web)** icon to register one.
+6.  You will see a config object (`const firebaseConfig = { ... }`). Copy the values from there into your `.env` file corresponding to the variable names above.
+
+### 4. Run the Application
+
+Start the local development server:
+
+```bash
+npm run dev
+```
+
+The application should now be running at `http://localhost:5173`.
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+├── components/       # React components
+│   ├── Analytics/    # Travel history and stats
+│   ├── Auth/         # Login/Signup handling
+│   ├── Dashboard/    # Main user dashboard
+│   ├── TripSetup/    # AI Plan generation flow
+│   └── Welcome/      # Landing page
+├── config/           # Firebase configuration
+├── App.jsx           # Main application entry
+└── App.css           # Global styles and design system
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is open-source and available under the [MIT License](LICENSE).
