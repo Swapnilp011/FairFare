@@ -114,7 +114,133 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Stats Grid */
+/* AI Trip Plan Section */
+.plan-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 1rem;
+}
+
+.plan-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 0.75rem;
+}
+
+.plan-tabs button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.plan-tabs button:hover {
+  color: var(--text-dark);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.plan-tabs button.active {
+  background: white;
+  color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.plan-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.plan-card {
+  background: white;
+  border: 1px solid #f3f4f6;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+  border-color: #e5e7eb;
+}
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--primary-color), #c084fc);
+  opacity: 1;
+}
+
+.plan-card h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.plan-cost {
+  display: inline-block;
+  background: #ede9fe;
+  color: var(--primary-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  align-self: flex-start;
+}
+
+.plan-card p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -471,8 +597,10 @@
   }
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* --- Responsive Design --- */
+
+/* Tablet Pro / Small Desktop (1024px) */
+@media (max-width: 1024px) {
   .dashboard-layout {
     flex-direction: column;
     overflow-y: scroll;
@@ -487,6 +615,30 @@
     align-items: center;
     border-bottom: 1px solid #e5e7eb;
     border-right: none;
+    position: sticky;
+    top: 0;
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .nav-item {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Tablet (768px) */
+@media (max-width: 768px) {
+  .sidebar {
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .logo-area {
@@ -499,140 +651,28 @@
   }
 
   .nav-menu {
-    flex-direction: row;
-    gap: 0.5rem;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    justify-content: flex-start;
   }
 
   .nav-item span {
-    display: none;
+    display: inline;
+    /* Keep text visible if space permits, or hide if needed */
   }
 
-  .content-grid {
-    grid-template-columns: 1fr;
+  .top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
-}
 
-/* AI Trip Plan Section */
-.plan-section {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 2rem;
-  border: 1px solid #f3f4f6;
-  animation: fadeIn 0.5s ease-out;
-}
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
 
-.plan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.plan-header h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin: 0;
-}
-
-.plan-tabs {
-  display: flex;
-  gap: 0.5rem;
-  background: #f3f4f6;
-  padding: 0.25rem;
-  border-radius: 0.75rem;
-}
-
-.plan-tabs button {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.875rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.plan-tabs button:hover {
-  color: var(--text-dark);
-}
-
-.plan-tabs button.active {
-  background: white;
-  color: var(--primary-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.plan-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.plan-card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.plan-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  background: white;
-  border-color: var(--primary-color);
-}
-
-.plan-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--primary-color);
-  opacity: 0.5;
-}
-
-.plan-card h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  line-height: 1.4;
-}
-
-.plan-cost {
-  display: inline-block;
-  background: #ede9fe;
-  color: var(--primary-color);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  align-self: flex-start;
-}
-
-.plan-card p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #4b5563;
-  line-height: 1.5;
-}
-
-@media (max-width: 640px) {
   .plan-header {
     flex-direction: column;
     align-items: flex-start;
@@ -641,10 +681,55 @@
   .plan-tabs {
     width: 100%;
     overflow-x: auto;
+    justify-content: flex-start;
   }
 
   .plan-tabs button {
-    flex: 1;
-    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+}
+
+/* Mobile (480px) */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 1rem;
+  }
+
+  .nav-item span {
+    display: none;
+    /* Hide text on very small screens to save space */
+  }
+
+  .nav-item {
+    justify-content: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .top-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .activity-item {
+    gap: 0.75rem;
+  }
+
+  .activity-icon {
+    width: 32px;
+    height: 32px;
   }
 }

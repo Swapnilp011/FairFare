@@ -153,6 +153,7 @@ body {
     font-size: 19px;
     color: #4b5563;
     line-height: 1.7;
+    margin-bottom: 8px;
 }
 
 .hero-form {
@@ -233,6 +234,7 @@ body {
     padding: 12px;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
     position: relative;
+    border: 8px solid #333;
 }
 
 .phone-mockup::before {
@@ -796,8 +798,9 @@ body {
 
 .footer-tagline {
     color: #9ca3af;
-    margin: 16px 0 30px;
-    font-size: 15px;
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
 }
 
 .footer-social {
@@ -809,42 +812,72 @@ body {
     color: #9ca3af;
     text-decoration: none;
     transition: color 0.3s;
+    font-size: 20px;
 }
 
 .social-link:hover {
     color: white;
 }
 
-.footer-heading {
+.footer-col h4 {
     color: white;
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 24px;
 }
 
-.footer-link {
-    display: block;
+.footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-links a {
     color: #9ca3af;
     text-decoration: none;
-    margin-bottom: 12px;
     font-size: 14px;
     transition: color 0.3s;
 }
 
-.footer-link:hover {
+.footer-links a:hover {
     color: white;
 }
 
 .footer-bottom {
-    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     color: #6b7280;
     font-size: 14px;
 }
 
-/* Responsive */
+.problem-icon img,
+.step-icon img,
+.feature-icon-large img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+/* --- Responsive Design --- */
+
+/* Tablet Pro (1024px) */
 @media (max-width: 1024px) {
+    .nav-content {
+        padding: 0 24px;
+    }
+
+    .hero-title {
+        font-size: 48px;
+    }
+
     .hero-content {
         grid-template-columns: 1fr;
+        gap: 60px;
         text-align: center;
     }
 
@@ -856,25 +889,58 @@ body {
         margin: 0 auto;
     }
 
+    .hero-form {
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-trust {
+        justify-content: center;
+    }
+
     .stats-bar {
+        gap: 32px;
+        padding: 30px;
         flex-wrap: wrap;
-        gap: 30px;
+        justify-content: center;
     }
 
     .stat-divider {
         display: none;
     }
+
+    .problem-grid,
+    .features-grid,
+    .use-cases-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
 }
 
+/* Tablet (768px) */
 @media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        /* Collapsed menu placeholder */
+    }
+
+    .hero-section {
+        padding: 120px 24px 60px;
+    }
+
     .hero-title {
         font-size: 42px;
     }
 
-    .problem-grid,
     .features-grid,
     .use-cases-grid,
-    .footer-content {
+    .problem-grid {
         grid-template-columns: 1fr;
     }
 
@@ -883,40 +949,79 @@ body {
         align-items: center;
     }
 
+    .step-card {
+        width: 100%;
+        max-width: 500px;
+    }
+
     .step-arrow {
         transform: rotate(90deg);
         margin: 20px 0;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}
+
+/* Mobile (480px) */
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 100px 20px 40px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .hero-form {
+        flex-direction: column;
+    }
+
+    .hero-cta-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .phone-mockup {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/2;
+        /* approximate */
+        max-width: 300px;
+    }
+
+    .section-title {
+        font-size: 28px;
+    }
+
+    .section-subtitle {
+        font-size: 16px;
     }
 
     .cta-form {
         flex-direction: column;
     }
 
-    .nav-links {
-        display: none;
+    .cta-button {
+        width: 100%;
+        justify-content: center;
     }
-}
 
-.problem-icon img {
-    width: 150px;
-    /* same small size */
-    height: 150px;
-    object-fit: cover;
-    border-radius: 15px;
-    /* rounded like emoji box */
-}
-
-.step-icon img {
-    width: 150px;
-    /* same small size as others */
-    height: 150px;
-    object-fit: cover;
-    border-radius: 15px;
-}
-
-.feature-icon-large img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 15px;
+    .feature-card,
+    .problem-card,
+    .step-card {
+        padding: 24px;
+    }
 }
