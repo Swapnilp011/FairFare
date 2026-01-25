@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Analytics from '../Analytics/Analytics';
+import Navbar from '../Navbar/Navbar';
 
 // Initialize Gemini API (Safe initialization)
 const getGeminiModel = () => {
@@ -296,52 +297,14 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
 
     return (
         <div className="dashboard-layout">
-            {/* Sidebar (Visual) */}
-            <aside className="sidebar">
-                <div className="logo-area">
-                    <h2>FairFare</h2>
-                </div>
-                <nav className="nav-menu">
-                    <div className={`nav-item ${dashboardView === 'overview' ? 'active' : ''}`} onClick={() => setDashboardView('overview')}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        <span>Dashboard</span>
-                    </div>
-                    <div className="nav-item">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                        <span>Wallet</span>
-                    </div>
-                    <div className={`nav-item ${dashboardView === 'analytics' ? 'active' : ''}`} onClick={() => setDashboardView('analytics')}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                        <span>Analytics</span>
-                    </div>
-
-                    {/* My Trips List */}
-                    {allTrips.length > 0 && (
-                        <div className="trips-list" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
-                            <h4 style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>My Trips</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
-                                {allTrips.map(trip => (
-                                    <div
-                                        key={trip.id}
-                                        onClick={() => handleSwitchTrip(trip)}
-                                        className={`nav-item ${currentTripId === trip.id ? 'active' : ''}`}
-                                        style={{ fontSize: '0.9rem', padding: '0.5rem 0.75rem' }}
-                                    >
-                                        <span style={{ width: '20px', textAlign: 'center' }}>✈️</span>
-                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
-                                            {trip.location}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    <div className="nav-item new-plan-btn" onClick={onNewPlan} style={{ marginTop: 'auto', marginBottom: '20px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#a78bfa' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                        <span>New Plan</span>
-                    </div>
-                </nav>
-            </aside>
+            <Navbar
+                activeView={dashboardView}
+                setActiveView={setDashboardView}
+                allTrips={allTrips}
+                currentTripId={currentTripId}
+                onSwitchTrip={handleSwitchTrip}
+                onNewPlan={onNewPlan}
+            />
 
             {/* Main Content */}
             <main className="main-content">
