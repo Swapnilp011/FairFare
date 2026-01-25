@@ -608,26 +608,15 @@
     overflow-y: scroll;
   }
 
-  .main-content {
-    margin-left: 0;
-    /* Navbar not fixed on side usually, or adjusted elsewhere. CHECK Navbar.css */
-    /* Actually Navbar IS fixed in Navbar.css for desktop. 
-         But in this breakpoint (1024px), Navbar.css doesn't change from fixed.
-         Wait, check Navbar.css media queries.
-         Navbar.css has specific styles for base and then max-width: 768px.
-         Between 768px and 1024px, Navbar is still fixed left.
-         So we should KEEP margin-left on 1024px unless we change Navbar to be top/bottom?
-         Navbar.css handles responsive at 768px.
-         So 1024px is treated as desktop in Navbar.css.
-         So Keep margin-left here.
-         
-         BUT, typically tablets might overlap?
-         Let's assume below 768px it changes.
-      */
+
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    /* Force single column stack */
+    gap: 2rem;
   }
 
   .sidebar {
-    /* This .sidebar class is effectively unused now, hiding or ignoring */
     display: none;
   }
 }
