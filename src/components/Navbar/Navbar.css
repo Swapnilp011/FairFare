@@ -22,6 +22,13 @@
     letter-spacing: -0.025em;
 }
 
+.logo-image {
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
 /* Nav Groups */
 .nav-links-group {
     display: flex;

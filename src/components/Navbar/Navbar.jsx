@@ -6,7 +6,7 @@ const Navbar = ({ activeView, setActiveView, allTrips, currentTripId, onSwitchTr
         <nav className="navbar-container">
             {/* Logo Area (Desktop Only) */}
             <div className="nav-logo">
-                <h2>FairFare</h2>
+                <img src="/images/logo.png" alt="FairFare" className="logo-image" />
             </div>
 
             {/* Main Navigation Links */}
