@@ -24,7 +24,7 @@ body {
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #e5e7eb;
     z-index: 1000;
-    padding: 16px 0;
+    padding: 10px 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -41,14 +41,23 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 24px;
+    font-size: 20px;
+    /* Reduced text size slightly */
     font-weight: 700;
     color: #1a1a1a;
     cursor: pointer;
 }
 
+.nav-logo-img {
+    height: 45px;
+    /* Reduced height */
+    width: auto;
+    display: block;
+}
+
 .logo-icon {
-    font-size: 28px;
+    /* Removed unused styles */
+    display: none;
 }
 
 .nav-links {
@@ -794,6 +803,25 @@ body {
     margin-bottom: 60px;
     border-bottom: 1px solid #333;
     padding-bottom: 60px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.footer-logo-img {
+    height: 40px;
+    width: auto;
+    margin-bottom: 0;
+}
+
+.footer-logo-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
 }
 
 .footer-tagline {

@@ -17,7 +17,7 @@ const Welcome = ({ onStart }) => {
             <nav className="navbar">
                 <div className="nav-content">
                     <div className="logo">
-                        <span className="logo-icon">✈️</span>
+                        <img src="/images/logo.png" alt="FairFare" className="nav-logo-img" />
                         <span className="logo-text">FairFare</span>
                     </div>
                     <div className="nav-links">
@@ -355,8 +355,8 @@ const Welcome = ({ onStart }) => {
                 <div className="footer-content">
                     <div className="footer-section">
                         <div className="footer-logo">
-                            <span className="logo-icon">✈️</span>
-                            <span className="logo-text">FairFare</span>
+                            <img src="/images/logo.png" alt="FairFare" className="footer-logo-img" />
+                            <span className="footer-logo-text">FairFare</span>
                         </div>
                         <p className="footer-tagline">Smart spending for smart travelers</p>
                         <div className="footer-social">
