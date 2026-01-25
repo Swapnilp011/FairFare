@@ -41,12 +41,8 @@ const Analytics = ({ allTrips, onSwitchTrip, onBack }) => {
 
     return (
         <div className="analytics-view" style={{ padding: '20px' }}>
-            <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                <div>
-                    <h1>Your Travel History</h1>
-                    <p className="date-text">Track your past adventures and ongoing journeys.</p>
-                </div>
-                {onBack && (
+            {onBack && (
+                <div style={{ marginBottom: '20px' }}>
                     <button onClick={onBack} style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
                         background: 'white', border: '1px solid #e5e7eb',
@@ -60,7 +56,13 @@ const Analytics = ({ allTrips, onSwitchTrip, onBack }) => {
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                         Back to Dashboard
                     </button>
-                )}
+                </div>
+            )}
+            <header className="top-header" style={{ marginBottom: '30px' }}>
+                <div>
+                    <h1>Your Travel History</h1>
+                    <p className="date-text">Track your past adventures and ongoing journeys.</p>
+                </div>
             </header>
 
             {ongoingTrips.length > 0 && (
