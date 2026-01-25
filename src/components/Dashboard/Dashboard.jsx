@@ -37,6 +37,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     const [currentSpend, setCurrentSpend] = useState(0);
     const [tripPlan, setTripPlan] = useState(initialTripData?.recommendations || null);
     const [activeTab, setActiveTab] = useState('places');
+    const [planExpanded, setPlanExpanded] = useState(false);
 
     // Multi-trip support
     const [allTrips, setAllTrips] = useState([]);
@@ -272,6 +273,27 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
     const progressPercentage = isCompleted ? 100 : Math.min((currentSpend / totalBudget) * 100, 100);
     const remainingBudget = totalBudget - currentSpend;
 
+    // Responsive Item Limit
+    const [itemLimit, setItemLimit] = useState(window.innerWidth < 768 ? 2 : 3);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setItemLimit(window.innerWidth < 768 ? 2 : 3);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const getCurrentItems = () => {
+        if (!tripPlan) return [];
+        return activeTab === 'places' ? (tripPlan.places || []) :
+            activeTab === 'food' ? (tripPlan.food || []) :
+                (tripPlan.stays || []);
+    };
+
+    const currentItems = getCurrentItems();
+    const visibleItems = planExpanded ? currentItems : currentItems.slice(0, itemLimit);
+
     return (
         <div className="dashboard-layout">
             {/* Sidebar (Visual) */}
@@ -362,56 +384,23 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                         )}
                                     </div>
                                     <div className="plan-tabs">
-                                        <button className={activeTab === 'places' ? 'active' : ''} onClick={() => setActiveTab('places')}>🏝️ Places</button>
-                                        <button className={activeTab === 'food' ? 'active' : ''} onClick={() => setActiveTab('food')}>🍜 Food</button>
-                                        <button className={activeTab === 'stays' ? 'active' : ''} onClick={() => setActiveTab('stays')}>🏨 Stays</button>
+                                        <button className={activeTab === 'places' ? 'active' : ''} onClick={() => { setActiveTab('places'); setPlanExpanded(false); }}>🏝️ Places</button>
+                                        <button className={activeTab === 'food' ? 'active' : ''} onClick={() => { setActiveTab('food'); setPlanExpanded(false); }}>🍜 Food</button>
+                                        <button className={activeTab === 'stays' ? 'active' : ''} onClick={() => { setActiveTab('stays'); setPlanExpanded(false); }}>🏨 Stays</button>
                                     </div>
                                 </div>
                                 <div className="plan-content">
-                                    {activeTab === 'places' && tripPlan.places?.map((place, idx) => (
-                                        <div key={idx} className="plan-card">
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    {place.name}
-                                                </h4>
-                                                <span className="plan-cost">🎟️ {place.ticket}</span>
-                                            </div>
-                                            {(place.rating || place.location) && (
-                                                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                                                    {place.rating && <>⭐ <strong>{place.rating}</strong></>}
-                                                    {place.rating && place.location && ' • '}
-                                                    {place.location && <>📍 {place.location}</>}
-                                                </p>
-                                            )}
-                                            <p style={{ marginTop: '8px', marginBottom: '12px' }}>{place.desc}</p>
-                                            <button
-                                                onClick={() => openSearch(place.name + " tourism")}
-                                                style={{
-                                                    background: 'transparent',
-                                                    border: '1px solid #8B5CF6',
-                                                    color: '#8B5CF6',
-                                                    padding: '6px 12px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    width: 'fit-content'
-                                                }}
-                                            >
-                                                View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {activeTab === 'food' && tripPlan.food?.map((item, idx) => (
+                                    {visibleItems.map((item, idx) => (
                                         <div key={idx} className="plan-card">
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     {item.name}
                                                 </h4>
-                                                <span className="plan-cost">💵 {item.cost}</span>
+                                                <span className="plan-cost">
+                                                    {activeTab === 'places' ? '🎟️ ' + item.ticket :
+                                                        activeTab === 'food' ? '💵 ' + item.cost :
+                                                            '🌙 ' + item.price}
+                                                </span>
                                             </div>
                                             {(item.rating || item.location) && (
                                                 <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
@@ -422,40 +411,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                             )}
                                             <p style={{ marginTop: '8px', marginBottom: '12px' }}>{item.desc}</p>
                                             <button
-                                                onClick={() => openSearch(item.name + " restaurant")}
-                                                style={{
-                                                    background: 'transparent',
-                                                    border: '1px solid #8B5CF6',
-                                                    color: '#8B5CF6',
-                                                    padding: '6px 12px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    width: 'fit-content'
-                                                }}
-                                            >
-                                                View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {activeTab === 'stays' && tripPlan.stays?.map((stay, idx) => (
-                                        <div key={idx} className="plan-card">
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    {stay.name}
-                                                </h4>
-                                                <span className="plan-cost">🌙 {stay.price}</span>
-                                            </div>
-                                            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                                                ⭐ <strong>{stay.rating}</strong> • 📍 {stay.location}
-                                            </p>
-                                            <p style={{ marginTop: '8px', marginBottom: '12px' }}>{stay.desc}</p>
-                                            <button
-                                                onClick={() => openSearch(stay.name + " hotel")}
+                                                onClick={() => openSearch(item.name + (activeTab === 'places' ? " tourism" : activeTab === 'food' ? " restaurant" : " hotel"))}
                                                 style={{
                                                     background: 'transparent',
                                                     border: '1px solid #8B5CF6',
@@ -476,6 +432,32 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                         </div>
                                     ))}
                                 </div>
+                                {currentItems.length > itemLimit && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                        <button
+                                            onClick={() => setPlanExpanded(!planExpanded)}
+                                            style={{
+                                                background: '#f3f4f6',
+                                                border: '1px solid #e5e7eb',
+                                                color: '#4b5563',
+                                                padding: '8px 24px',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#e5e7eb'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+                                        >
+                                            {planExpanded ? 'Show Less' : 'Show More'}
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: planExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"></path></svg>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
 
