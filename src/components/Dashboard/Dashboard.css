@@ -79,6 +79,8 @@
   overflow-y: auto;
   padding: 2rem;
   position: relative;
+  margin-left: var(--sidebar-width);
+  /* Push content right to clear fixed navbar */
 }
 
 .top-header {
@@ -606,40 +608,42 @@
     overflow-y: scroll;
   }
 
+  .main-content {
+    margin-left: 0;
+    /* Navbar not fixed on side usually, or adjusted elsewhere. CHECK Navbar.css */
+    /* Actually Navbar IS fixed in Navbar.css for desktop. 
+         But in this breakpoint (1024px), Navbar.css doesn't change from fixed.
+         Wait, check Navbar.css media queries.
+         Navbar.css has specific styles for base and then max-width: 768px.
+         Between 768px and 1024px, Navbar is still fixed left.
+         So we should KEEP margin-left on 1024px unless we change Navbar to be top/bottom?
+         Navbar.css handles responsive at 768px.
+         So 1024px is treated as desktop in Navbar.css.
+         So Keep margin-left here.
+         
+         BUT, typically tablets might overlap?
+         Let's assume below 768px it changes.
+      */
+  }
+
   .sidebar {
-    width: 100%;
-    height: auto;
-    padding: 1rem;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #e5e7eb;
-    border-right: none;
-    position: sticky;
-    top: 0;
-  }
-
-  .nav-menu {
-    flex-direction: row;
-    gap: 0.5rem;
-  }
-
-  .nav-item {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .content-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    /* This .sidebar class is effectively unused now, hiding or ignoring */
+    display: none;
   }
 }
 
 /* Tablet (768px) */
 @media (max-width: 768px) {
-  .sidebar {
-    flex-wrap: wrap;
-    gap: 1rem;
+  .main-content {
+    margin-left: 0;
+    /* Reset margin as Navbar moves to bottom */
   }
+
+  .sidebar {
+    display: none;
+  }
+
+  /* ... rest ... */
 
   .logo-area {
     margin-bottom: 0;
@@ -693,21 +697,18 @@
 @media (max-width: 480px) {
   .main-content {
     padding: 1rem;
-  }
-
-  .nav-item span {
-    display: none;
-    /* Hide text on very small screens to save space */
-  }
-
-  .nav-item {
-    justify-content: center;
+    padding-top: 5rem;
+    /* Space for top header/profile */
+    padding-bottom: 80px;
+    /* Space for bottom navbar */
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
+  /* ... rest of existing mobile styles ... */
   .top-header h1 {
     font-size: 1.5rem;
   }
@@ -731,5 +732,11 @@
   .activity-icon {
     width: 32px;
     height: 32px;
+  }
+
+  /* Hide sidebar in Dashboard.css since Navbar handles it, 
+     but keeping safe styles if classes linger */
+  .sidebar {
+    display: none;
   }
 }
