@@ -100,12 +100,15 @@
 /* Loading Screen */
 .loading-screen {
   height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #0a0a0a;
   color: white;
   flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .loading-text {
@@ -117,10 +120,32 @@
   color: transparent;
   animation: pulse 2s infinite ease-in-out;
   letter-spacing: -0.02em;
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .loading-text {
+    font-size: 2rem;
+  }
 }
 
 @keyframes pulse {
-  0% { opacity: 0.7; transform: scale(0.98); filter: blur(0.5px); }
-  50% { opacity: 1; transform: scale(1); filter: blur(0px); }
-  100% { opacity: 0.7; transform: scale(0.98); filter: blur(0.5px); }
+  0% {
+    opacity: 0.7;
+    transform: scale(0.98);
+    filter: blur(0.5px);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+
+  100% {
+    opacity: 0.7;
+    transform: scale(0.98);
+    filter: blur(0.5px);
+  }
 }
