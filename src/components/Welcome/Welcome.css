@@ -954,8 +954,12 @@ body {
 /* Tablet (768px) */
 @media (max-width: 768px) {
     .nav-links {
+        display: flex;
+        gap: 12px;
+    }
+
+    .nav-links a {
         display: none;
-        /* Collapsed menu placeholder */
     }
 
     .hero-section {
@@ -1005,6 +1009,21 @@ body {
 
 /* Mobile (480px) */
 @media (max-width: 480px) {
+    .nav-login-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .nav-signup-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .logo-text {
+        display: none;
+        /* Hide logo text on very small screens if needed, or just shrink. User asked for buttons. */
+    }
+
     .hero-section {
         padding: 100px 20px 40px;
     }
