@@ -1,10 +1,61 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from '../../config/firebase';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const Analytics = ({ allTrips, onSwitchTrip, onBack }) => {
+    const [tripsWithData, setTripsWithData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const ongoingTrips = allTrips.filter(trip => trip.status !== 'completed');
-    const completedTrips = allTrips.filter(trip => trip.status === 'completed');
+    // Self-Healing: Fetch actual expenses for each trip to calculate true remaining budget
+    useEffect(() => {
+        const syncTripData = async () => {
+            setLoading(true);
+            const syncedTrips = await Promise.all(allTrips.map(async (trip) => {
+                try {
+                    // 1. Fetch all expenses for this trip
+                    const expensesRef = collection(db, "trips", trip.id, "expenses");
+                    const snapshot = await getDocs(expensesRef);
+
+                    if (snapshot.empty) {
+                        return trip;
+                    }
+
+                    // 2. Calculate Total Spent
+                    const totalSpent = snapshot.docs.reduce((acc, doc) => acc + Number(doc.data().cost || 0), 0);
+                    const trueRemaining = Number(trip.budget) - totalSpent;
+
+                    // 3. Check if DB needs update (Self-Healing)
+                    // If the stored remainingBudget is different or missing, update it
+                    if (trip.remainingBudget !== trueRemaining) {
+                        // We don't await this to keep UI snappy, just fire and forget
+                        updateDoc(doc(db, "trips", trip.id), {
+                            remainingBudget: trueRemaining,
+                            lastUpdated: new Date()
+                        }).catch(e => console.warn("Background sync failed", e));
+                    }
+
+                    return { ...trip, remainingBudget: trueRemaining, _calculated: true };
+                } catch (error) {
+                    console.error(`Error syncing trip ${trip.id}:`, error);
+                    return trip;
+                }
+            }));
+
+            setTripsWithData(syncedTrips);
+            setLoading(false);
+        };
+
+        if (allTrips.length > 0) {
+            syncTripData();
+        } else {
+            setLoading(false);
+        }
+    }, [allTrips]);
+
+
+    const ongoingTrips = tripsWithData.filter(trip => trip.status !== 'completed');
+    const completedTrips = tripsWithData.filter(trip => trip.status === 'completed');
 
     const TripCard = ({ trip }) => (
         <div
@@ -35,9 +86,23 @@ const Analytics = ({ allTrips, onSwitchTrip, onBack }) => {
 
             <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#4b5563' }}>
                 <span>💰 Budget: <strong>₹{trip.budget}</strong></span>
+                <span style={{
+                    color: (trip.remainingBudget ?? trip.budget) >= 0 ? '#059669' : '#DC2626',
+                    fontWeight: '600',
+                    background: (trip.remainingBudget ?? trip.budget) >= 0 ? '#d1fae5' : '#fee2e2',
+                    padding: '2px 8px',
+                    borderRadius: '6px'
+                }}>
+                    {(trip.remainingBudget ?? trip.budget) >= 0 ? '✨ Saved: ' : '⚠️ Overspent: '}
+                    ₹{Math.abs(trip.remainingBudget ?? trip.budget)}
+                </span>
             </div>
         </div>
     );
+
+    if (loading) {
+        return <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>Syncing financial data...</div>;
+    }
 
     return (
         <div className="analytics-view" style={{ padding: '20px' }}>

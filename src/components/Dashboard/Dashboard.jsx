@@ -247,6 +247,10 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
         const updatedExpenses = [newExpense, ...expenses];
         setExpenses(updatedExpenses);
 
+        // Calculate new remaining budget for sync
+        const newTotalSpend = currentSpend + Number(cost);
+        const newRemaining = totalBudget - newTotalSpend;
+
         // 2. Save to Local Cache (Manual Persistence)
         const localExpensesKey = `expenses_${currentTripId}`;
         localStorage.setItem(localExpensesKey, JSON.stringify(updatedExpenses));
@@ -258,6 +262,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
         setWarningMessage(null);
 
         try {
+            // Add Expense to Subcollection
             const expensesRef = collection(db, "trips", currentTripId, "expenses");
             await addDoc(expensesRef, {
                 name: itemName,
@@ -265,6 +270,16 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                 city: city,
                 timestamp: new Date()
             });
+
+            // Sync Remaining Budget to Parent Trip Document (For Analytics)
+            // This ensures the "Savings" shown in Analytics is correct
+            if (!currentTripId.toString().startsWith('local_')) {
+                await updateDoc(doc(db, "trips", currentTripId), {
+                    remainingBudget: newRemaining,
+                    lastUpdated: new Date()
+                });
+            }
+
         } catch (error) {
             console.error("Error adding document (saved locally in session): ", error);
         }
