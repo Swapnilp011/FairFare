@@ -79,9 +79,18 @@ const TripSetup = ({ user, onComplete, onCancel }) => {
 
             // Try to Save to Firestore
             try {
-                // Ensure we use the authenticated user's ID
+                // Ensure we use the authenticated user's ID directly from auth state
                 const currentUser = auth.currentUser;
-                const uid = currentUser ? currentUser.uid : user.uid;
+
+                if (!currentUser) {
+                    console.warn("No authenticated user found in auth.currentUser");
+                    // If we have a user prop but no auth.currentUser, we might be in a detached state
+                    // We cannot save to Firestore securely without auth.currentUser matching
+                    throw new Error("You appear to be offline or not properly authenticated. Please refresh and log in again.");
+                }
+
+                const uid = currentUser.uid;
+                console.log("Saving trip for User ID:", uid);
 
                 // create a new document with auto-generated ID
                 const docRef = await addDoc(collection(db, "trips"), {
@@ -96,13 +105,19 @@ const TripSetup = ({ user, onComplete, onCancel }) => {
                     status: 'active'
                 });
                 tripId = docRef.id;
-                console.log("Trip saved with ID:", tripId);
+                console.log("Trip successfully saved with ID:", tripId);
 
             } catch (dbError) {
                 console.error("Database Save Error:", dbError);
                 // If DB save fails, generate a temporary local ID
                 tripId = `local_${Date.now()}`;
-                alert(`Plan generated! However, save failed: ${dbError.code || dbError.message}. proceeding to dashboard anyway...`);
+
+                let errorMsg = dbError.code || dbError.message;
+                if (dbError.code === 'permission-denied') {
+                    errorMsg = "Permission Denied. likely due to Firestore Rules blocking the write. Please ensure your firestore.rules are deployed and allow this user.";
+                }
+
+                alert(`Plan generated locally! But Cloud Save failed: ${errorMsg}`);
             }
 
             // Save to LocalStorage
