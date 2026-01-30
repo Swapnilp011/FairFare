@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import Dashboard from './components/Dashboard/Dashboard';
 import Welcome from './components/Welcome/Welcome';
@@ -14,6 +14,24 @@ function App() {
   const [currentTrip, setCurrentTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const userWidgetRef = useRef(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userWidgetRef.current && !userWidgetRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   // Function to handle fetching user data and setting view
   const processUserLogin = async (firebaseUser) => {
@@ -143,7 +161,7 @@ function App() {
     <div className="App">
       {/* Floating User Widget (Only show when logged in and not on auth pages) */}
       {user && view !== 'welcome' && view !== 'auth' && (
-        <div className="user-widget">
+        <div className="user-widget" ref={userWidgetRef}>
           <div className="user-badge" onClick={() => setShowUserMenu(!showUserMenu)}>
             <div className="user-avatar-small">
               {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
