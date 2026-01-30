@@ -1067,8 +1067,41 @@ body {
     }
 
     .feature-card,
-    .problem-card,
-    .step-card {
+    .problem-card {
         padding: 24px;
+    }
+
+    .step-card {
+        padding: 40px 20px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .steps-container {
+        gap: 0;
+    }
+
+    .step-arrow {
+        margin: 0;
+        padding: 0;
+        color: #007bff;
+        font-weight: bold;
+        z-index: 5;
+    }
+
+    .step-number {
+        left: 50%;
+        transform: translateX(-50%);
+        top: -24px;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    }
+
+    .step-example {
+        text-align: left;
+        width: 100%;
+        margin-top: 15px;
     }
 }
