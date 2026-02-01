@@ -74,7 +74,7 @@ const CurrencyConverter = () => {
     const currencies = ["USD", "EUR", "GBP", "JPY", "INR", "AUD", "CAD", "CHF", "CNY", "SGD"];
 
     return (
-        <div className="card currency-converter-card" style={{ marginBottom: '20px' }}>
+        <div className="card currency-converter-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <h3 style={{ margin: 0, color: '#1f2937', fontSize: '1.125rem' }}>Quick Convert</h3>
                 {isLoading && <span style={{ fontSize: '0.8rem', color: '#8B5CF6' }}>Updating...</span>}
