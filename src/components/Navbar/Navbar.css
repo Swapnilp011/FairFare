@@ -214,3 +214,8 @@
         color: #8B5CF6;
     }
 }
+
+.trip-name {
+    flex: 1;
+    min-width: 0;
+}

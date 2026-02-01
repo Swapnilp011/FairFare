@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
-const Analytics = ({ allTrips, onSwitchTrip, onBack }) => {
+const Analytics = ({ allTrips, onSwitchTrip, onBack, onDeleteTrip }) => {
     const [tripsWithData, setTripsWithData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -84,18 +84,44 @@ const Analytics = ({ allTrips, onSwitchTrip, onBack }) => {
             <h3 style={{ margin: '0 0 5px 0', fontSize: '1.25rem', fontWeight: '700', color: '#1f2937' }}>{trip.location}</h3>
             <p style={{ margin: '0 0 15px 0', color: '#6b7280', fontSize: '0.9rem' }}>Created: {trip.createdAt?.toDate ? trip.createdAt.toDate().toLocaleDateString() : 'Unknown'}</p>
 
-            <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#4b5563' }}>
-                <span>💰 Budget: <strong>₹{trip.budget}</strong></span>
-                <span style={{
-                    color: (trip.remainingBudget ?? trip.budget) >= 0 ? '#059669' : '#DC2626',
-                    fontWeight: '600',
-                    background: (trip.remainingBudget ?? trip.budget) >= 0 ? '#d1fae5' : '#fee2e2',
-                    padding: '2px 8px',
-                    borderRadius: '6px'
-                }}>
-                    {(trip.remainingBudget ?? trip.budget) >= 0 ? '✨ Saved: ' : '⚠️ Overspent: '}
-                    ₹{Math.abs(trip.remainingBudget ?? trip.budget)}
-                </span>
+            <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#4b5563', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ marginBottom: '4px' }}>💰 Budget: <strong>₹{trip.budget}</strong></span>
+                    <span style={{
+                        color: (trip.remainingBudget ?? trip.budget) >= 0 ? '#059669' : '#DC2626',
+                        fontWeight: '600',
+                        fontSize: '0.85rem'
+                    }}>
+                        {(trip.remainingBudget ?? trip.budget) >= 0 ? '✨ Saved: ' : '⚠️ Over: '}
+                        ₹{Math.abs(trip.remainingBudget ?? trip.budget)}
+                    </span>
+                </div>
+
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteTrip(e, trip.id);
+                    }}
+                    style={{
+                        background: '#fee2e2',
+                        color: '#ef4444',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+                >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    Delete
+                </button>
             </div>
         </div>
     );
