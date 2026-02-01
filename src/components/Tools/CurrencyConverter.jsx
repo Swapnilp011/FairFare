@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Dashboard/Dashboard.css';
+import '../Dashboard/Dashboard.css';
 
 const CurrencyConverter = () => {
     // State for two-way binding
