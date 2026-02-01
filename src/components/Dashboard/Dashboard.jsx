@@ -575,7 +575,7 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                 ) : dashboardView === 'analytics' ? (
                     <Analytics allTrips={allTrips} onSwitchTrip={handleSwitchTrip} onBack={() => setDashboardView('overview')} />
                 ) : dashboardView === 'tools' ? (
-                    <Tools />
+                    <Tools city={city} />
                 ) : null}
             </main>
         </div>
