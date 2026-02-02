@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import TravelStats from './TravelStats.jsx';
 
 const Analytics = ({ allTrips, onSwitchTrip, onBack, onDeleteTrip }) => {
     const [tripsWithData, setTripsWithData] = useState([]);
@@ -155,6 +156,9 @@ const Analytics = ({ allTrips, onSwitchTrip, onBack, onDeleteTrip }) => {
                     <p className="date-text">Track your past adventures and ongoing journeys.</p>
                 </div>
             </header>
+
+            {/* Travel Stats Summary */}
+            <TravelStats allTrips={allTrips} />
 
             {ongoingTrips.length > 0 && (
                 <div style={{ marginBottom: '40px' }}>
