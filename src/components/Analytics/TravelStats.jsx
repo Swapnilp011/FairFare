@@ -3,9 +3,18 @@ import React from 'react';
 const TravelStats = ({ allTrips = [] }) => {
     if (!allTrips) return null;
 
-    // Logic for unique places
+    // Logic for total savings (sum of all remaining budgets)
+    // We check t.remainingBudget first, fallback to t.budget if no expenses tracked yet (technically savings=budget then? No, that's misleading).
+    // Actually, remainingBudget IS the savings if the trip is completed or in progress.
+    // If remainingBudget is undefined, it means no expenses have been synced or added, so remaining is the full budget.
+    // So we sum up (t.remainingBudget ?? t.budget).
     const uniquePlacesCount = new Set(allTrips.map(t => t.location?.trim().toLowerCase()).filter(Boolean)).size;
     const totalTripsCount = allTrips.length;
+
+    const totalSavings = allTrips.reduce((acc, trip) => {
+        const tripSavings = trip.remainingBudget ?? trip.budget;
+        return acc + Number(tripSavings);
+    }, 0);
 
     return (
         <div style={{
@@ -53,6 +62,28 @@ const TravelStats = ({ allTrips = [] }) => {
                 </div>
                 <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#8B5CF6' }}>
                     {uniquePlacesCount}
+                </p>
+            </div>
+
+            {/* Total Saved Card */}
+            <div style={{
+                background: 'white',
+                padding: '20px',
+                borderRadius: '16px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <div style={{ background: '#ecfdf5', padding: '8px', borderRadius: '10px', color: '#10b981' }}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h4 style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem', fontWeight: '600' }}>Total Saved</h4>
+                </div>
+                <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: totalSavings >= 0 ? '#10b981' : '#ef4444' }}>
+                    ₹{totalSavings.toLocaleString()}
                 </p>
             </div>
         </div>

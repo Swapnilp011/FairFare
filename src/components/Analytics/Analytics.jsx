@@ -152,8 +152,8 @@ const Analytics = ({ allTrips, onSwitchTrip, onBack, onDeleteTrip }) => {
             )}
             <header className="top-header" style={{ marginBottom: '30px' }}>
                 <div>
-                    <h1>Your Travel History</h1>
-                    <p className="date-text">Track your past adventures and ongoing journeys.</p>
+                    <h1 style={{ color: 'white' }}>Your Travel History</h1>
+                    <p className="date-text" style={{ color: '#f3f4f6' }}>Track your past adventures and ongoing journeys.</p>
                 </div>
             </header>
 
