@@ -439,26 +439,48 @@ const Dashboard = ({ user, initialTripData, onNewPlan }) => {
                                                     {item.location && <>📍 {item.location}</>}
                                                 </p>
                                             )}
-                                            <p style={{ marginTop: '8px', marginBottom: '12px' }}>{item.desc}</p>
-                                            <button
-                                                onClick={() => openSearch(item.name + (activeTab === 'places' ? " tourism" : activeTab === 'food' ? " restaurant" : " hotel"))}
-                                                style={{
-                                                    background: 'transparent',
-                                                    border: '1px solid #8B5CF6',
-                                                    color: '#8B5CF6',
-                                                    padding: '6px 12px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    width: 'fit-content'
-                                                }}
-                                            >
-                                                View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                            </button>
+                                            <p className="plan-desc" style={{ marginTop: '8px', marginBottom: '12px' }}>{item.desc}</p>
+                                            <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                                                <button
+                                                    onClick={() => openSearch(item.name + (activeTab === 'places' ? " tourism" : activeTab === 'food' ? " restaurant" : " hotel"))}
+                                                    style={{
+                                                        background: 'transparent',
+                                                        border: '1px solid #8B5CF6',
+                                                        color: '#8B5CF6',
+                                                        padding: '6px 12px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: '600',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        width: 'fit-content'
+                                                    }}
+                                                >
+                                                    View More Info <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.name + " " + city)}`, '_blank')}
+                                                    style={{
+                                                        background: '#8B5CF6',
+                                                        border: '1px solid #8B5CF6',
+                                                        color: 'white',
+                                                        padding: '6px 12px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: '600',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        width: 'fit-content'
+                                                    }}
+                                                >
+                                                    Directions <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

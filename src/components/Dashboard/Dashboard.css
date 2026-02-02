@@ -198,6 +198,13 @@
   position: relative;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  height: 100%;
+  /* Ensure card fills grid cell height */
+}
+
+/* Push the last child (buttons) to the bottom */
+.plan-card>div:last-child {
+  margin-top: auto;
 }
 
 .plan-card:hover {
@@ -241,6 +248,16 @@
   font-size: 0.875rem;
   color: #4b5563;
   line-height: 1.6;
+}
+
+.plan-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  /* Helps push buttons down if text is short */
 }
 
 .stats-grid {
